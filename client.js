@@ -21,10 +21,40 @@ fb.on('connect');
 /*************************************************************************************************/
 /*** Client Side APIs                                                                          ***/
 /*************************************************************************************************/
+/******************************************************/
+/*** Events                                         ***/
+/******************************************************/
+'connect'
+'connect_fail'
+'disconnect'
+'reconnect'
+'reconnect_fail'
+
+'ind'
+    type: 'devIncoming'
+    type: 'gadIncoming'
+    type: 'devLeaving'
+    type: 'gadLeaving'
+    type: 'stateChanged'
+    type: 'netChanged'
+    type: 'report'
+
+'rsp'
+
+// -> cmd:
+// <- rsp:
 
 /******************************************************/
 /*** Methods                                        ***/
 /******************************************************/
+connect()
+
+get:
+    getNcIds() <-> getNetcores(ids)
+    getDevIds() <-> getDevices(ids)
+    getGadIds() <-> getGadgets(ids)
+
+
 fb.connect();   // need authenticate at server side
 
 fb.netcores = [ 'nc1', 'nc2', ... ];
@@ -70,19 +100,4 @@ var gad1 = fb.findGad();
 gad1.read();
 gad1.write();
 gad1.exec();
-
-/******************************************************/
-/*** Events                                         ***/
-/******************************************************/
-// ind:devIncoming
-// ind:gadIncoming
-// ind:devLeaving
-// ind:gadLeaving
-
-// ind:stateChanged
-// ind:netChanged
-// ind:report
-
-// -> cmd:
-// <- rsp:
 
