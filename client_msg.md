@@ -9,10 +9,9 @@ Freebird Client/Server Message Formats (through websocket)
     - [Request](#Request)  
     - [Response](#Response)  
     - [Indication](#Indication)  
-
-3. [Indication types](#IndTypes)  
-4. [Commands](#Commands)  
-5. [Data model](#DataModel)  
+3. [Request Data Model](#RequestData)  
+4. [Response Data Model](#ResponseData)  
+5. [Indication Data Model](#IndicationData)  
 6. [Error Codes](#ErrorCodes)  
 
 <br />
@@ -44,10 +43,24 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 | __intf   | String          | 'REQ'                                                                                                                     |
 | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message going to.                   |
 | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                              |
-| id       | Number          | id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
+| id       | Number          | Id of the sender. id means **nothing** if (subsys === 'net'), **device id** if (subsys === 'dev'), and **gadget id** if (subsys === 'gad'). It is noticed that id = 0 is reserved for the freebird web-client and server. |
 | cmd      | String | Number | Command Identifier.                                                                                                       |
 | arg      | Array           | A value-object taht contains command arguments.                                                                           |
 
+- **Message Example**:  
+
+```js
+{ 
+    __intf: 'REQ',
+    subsys: 'nwk',
+    seq: 3,
+    id: 0,                  // sender of this request is freebird web-client
+    cmd: 'getDevs',
+    arg: {
+        ids: [ 2, 4, 18, 61 ]
+    }
+}
+```
 ********************************************
 
 <a name="Response"></a>
@@ -65,11 +78,24 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 | __intf   | String          | 'RSP'                                                                                                                              |
 | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message coming from.                         |
 | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                                       |
-| id       | Number          | id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`.          |
-| cmd      | String | Number | Command Identifier.                                                                                                                |
+| id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
+| cmd      | String          | Command Identifier.                                                                                                                |
 | status   | Number          | Status code.                                                                                                                       |
 | data     | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
 
+- **Message Example**:  
+
+```js
+{ 
+    __intf: 'RSP',
+    subsys: 'nwk',
+    seq: 17,
+    id: 0,                  // sender of this response is freebird server
+    cmd: 'getAllDevIds',
+    status: 0,
+    data: [ 2, 4, 18, 61 ]
+}
+```
 ********************************************
 
 <a name="Indication"></a>
@@ -80,20 +106,17 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 - **Interface**:  
     __intf = 'IND'  
 - **Message**:  
-    { __intf, type, subsys, id, data }  
+    { __intf, subsys, type, id, data }  
 
 | Property | Type            | Description                                                                                                               |
 |----------|-----------------|---------------------------------------------------------------------------------------------------------------------------|
 | __intf   | String          | 'IND'                                                                                                                     |
 | type     | String          | There few types of indication accepted. Please see section [Indication types](#IndTypes) for details.                     |
 | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.             |
-| id       | Number          | id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
+| id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
 | data     | Depends         | Data along with the indication. Please see section [Data Model](#DataModel) to learn the indicating data format.          |
 
-********************************************
-
-<a name="IndTypes"></a>  
-## 3. Indication types  
+- **Indication types**:  
 
 | Indication Type | Description                                                                        |
 |-----------------|------------------------------------------------------------------------------------|
@@ -107,13 +130,27 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 | 'gadLeaving'    | A gadget is leaving.                                                               |
 | 'permitJoing'   | Server is now opened or closed for device joining network.                         |
 
+- **Message Example**:  
 
-<a name="Commands"></a>  
-## 4. Command Requests  
+```js
+{ 
+    __intf: 'IND',
+    subsys: 'gad',
+    type: 'attrChanged',
+    id: 147,            // sender of this indication is a gadget with id = 147
+    data: {
+        sensorValue: 24
+    }
+}
+```
+********************************************
+<a name="RequestData"></a>  
+## 3. Request Data Model  
 
-| Subsystem | Command Name | Arguments (arg) | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Subsystem | Command Name | Arguments (`arg` object) | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 |-----------|--------------|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| nwk       | getIds       | { [ncName,] type }       | Get identifiers of devices or gadgets on freebird Server. **ncName** is a string and is optional. **type** can be `'dev'` or `'gad'` to indicate which type of identifiers, device or gadget, to get. If **ncName** is given, only identifiers of device(or gadget) managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                            |
+| nwk       | getAllDevIds | { [ncName] }             | Get identifiers of all devices on freebird Server. **ncName** is a string and is optional. If **ncName** is given, only identifiers of devices managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                 |
+| nwk       | getAllGadIds | { [ncName] }             | Get identifiers of all gadgets on freebird Server. **ncName** is a string and is optional. If **ncName** is given, only identifiers of gadgets managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                 |
 | nwk       | getDevs      | { ids }                  | Get information of devices by their ids. **ids** is an array of numbers and each number is a device id, i.e., given `{ ids: [ 5, 6, 77 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | nwk       | getGads      | { ids }                  | Get gadget information by gadget id. **ids** is an array of numbers and each number is a gadget id, i.e., given `{ ids: [ 23, 14, 132 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | nwk       | getNetcores  | { ncNames }              | Get netcore information by netcore name. **ncNames** is an array of strings and each string is a netcore name, i.e., given `{ ncNames: [ 'ble-core', 'zigbee-core' ] }`.                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -135,8 +172,39 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 | gad       | exec         | { id, attrName[, args] } | Invoke a remote procedure on a gadget. **id** is the id of which gadget you like to perform some kind of its procedure. **attrName** is the attribute name of an executable procedure. **args** is an array of parameters and the parameters should be given in order to meet the procedure signature declaration. For example, given `{ id: 9, attrName: 'blink', value: [ 10, 500 ] }` to blink a LED on a gadget 10 times with 500ms interval.                                                                                                                                    |
 | gad       | setReportCfg | { id, attrName, cfg }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | gad       | getReportCfg | { id, attrName }         | Get the report settings of an attribute on a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-<a name="DataModel"></a>  
-## 4. Data Model  
+********************************************
+<a name="ResponseData"></a>  
+## 4. Response Data Model  
+
+The response message is an object with keys { __intf, subsys, seq, id, cmd, status, data }. The data field contains the
+respond data according to the request.  
+
+| Subsystem | Command Name | Response Data Type | Data Description                                     | Example                         |
+|-----------|--------------|--------------------|------------------------------------------------------|---------------------------------|
+| nwk       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]              |
+| nwk       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ] |
+| nwk       | getDevs      | Object[]           | Array of device information objects                  | [ devInfo, ...  ]               |
+| nwk       | getGads      | Object[]           | Array of gadget information objects                  | [ gadInfo , ... ]               |
+| nwk       | getNetcores  | Object[]           | Array of netcore information objects                 | [ ncInfo, ... ]                 |
+| nwk       | getBlacklist | Object[]           | Array of bannde device objects                       | [ bannedDev, ... ]              |
+| nwk       | permitJoin   | -                  | No data returned                                     | null                            |
+| nwk       | maintain     | -                  | No data returned                                     | null                            |
+| nwk       | reset        | -                  | No data returned                                     | null                            |
+| nwk       | enable       | -                  | No data returned                                     | null                            |
+| nwk       | disable      | -                  | No data returned                                     | null                            |
+| dev       | read         | Depends            | The read value. Can be anything                      | 3                               |
+| dev       | write        | Depends            | The written value. Can be anything                   | 'kitchen'                       |
+| dev       | remove       | String             | Device permanent address                             | '0x00124b0001ce4b89'            |
+| dev       | identify     | -                  | No data returned                                     | null                            |
+| dev       | ping         | Number             | Round-trip time in ms                                | 24                              |
+| dev       | ban          | -                  | No data returned                                     | null                            |
+| dev       | unban        | -                  | No data returned                                     | null                            |
+| gad       | read         | Depends            | The read value. Can be anything                      | 1012.41                         |
+| gad       | write        | Depends            | The written value. Can be anything                   | flase                           |
+| gad       | exec         | Depends            | The data returned by the procedure. Can be anything. | 'completed'                     |
+| gad       | setReportCfg | Null               | No data returned                                     | null                            |
+| gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
+
 
 <a name="DataRequest"></a>
 ### Command Request/Response Data Model  
@@ -310,4 +378,7 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 ```
 <a name="DataIndication"></a>
 ### Indication Data Model  
+
+<a name="ErrorCode"></a>
+### Error Code  
 
