@@ -45,30 +45,32 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 - **Message**:  
     { __intf, subsys, seq, id, cmd, arg }  
 
-| Property | Type            | Description                                                                                                               |
-|----------|-----------------|---------------------------------------------------------------------------------------------------------------------------|
-| __intf   | String          | 'REQ'                                                                                                                     |
-| subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message going to.                   |
-| seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                              |
-| id       | Number          | Id of the sender. id means **nothing** if (subsys === 'net'), **device id** if (subsys === 'dev'), and **gadget id** if (subsys === 'gad'). It is noticed that id = 0 is reserved for the freebird web-client and server. |
-| cmd      | String          | Command Identifier.                                                                                                       |
-| arg      | Object          | A value-object taht contains command arguments.                                                                           |
+    | Property | Type            | Description                                                                                                               |
+    |----------|-----------------|---------------------------------------------------------------------------------------------------------------------------|
+    | __intf   | String          | 'REQ'                                                                                                                     |
+    | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message going to.                   |
+    | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                              |
+    | id       | Number          | Id of the sender. id means **nothing** if (subsys === 'net'), **device id** if (subsys === 'dev'), and **gadget id** if (subsys === 'gad'). It is noticed that id = 0 is reserved for the freebird web-client and server. |
+    | cmd      | String          | Command Identifier.                                                                                                       |
+    | arg      | Object          | A value-object taht contains command arguments.                                                                           |
 
 - **Message Example**:  
 
-```js
-{ 
-    __intf: 'REQ',
-    subsys: 'nwk',
-    seq: 3,
-    id: 0,
-    cmd: 'getDevs',
-    arg: {
-        ids: [ 2, 4, 18, 61 ]
+    ```js
+    { 
+        __intf: 'REQ',
+        subsys: 'net',
+        seq: 3,
+        id: 0,
+        cmd: 'getDevs',
+        arg: {
+            ids: [ 2, 4, 18, 61 ]
+        }
     }
-}
-```
+    ```
 ********************************************
+
+<br />
 
 <a name="Response"></a>
 ### Response  
@@ -80,30 +82,32 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 - **Message**:  
     { __intf, subsys, seq, id, cmd, status, data }  
 
-| Property | Type            | Description                                                                                                                        |
-|----------|-----------------|------------------------------------------------------------------------------------------------------------------------------------|
-| __intf   | String          | 'RSP'                                                                                                                              |
-| subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message coming from.                         |
-| seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                                       |
-| id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
-| cmd      | String          | Command Identifier.                                                                                                                |
-| status   | Number          | Status code.                                                                                                                       |
-| data     | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
+    | Property | Type            | Description                                                                                                                        |
+    |----------|-----------------|------------------------------------------------------------------------------------------------------------------------------------|
+    | __intf   | String          | 'RSP'                                                                                                                              |
+    | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message coming from.                         |
+    | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                                       |
+    | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
+    | cmd      | String          | Command Identifier.                                                                                                                |
+    | status   | Number          | Status code.                                                                                                                       |
+    | data     | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
 
 - **Message Example**:  
 
-```js
-{ 
-    __intf: 'RSP',
-    subsys: 'nwk',
-    seq: 17,
-    id: 0,
-    cmd: 'getAllDevIds',
-    status: 0,
-    data: [ 2, 4, 18, 61 ]
-}
-```
+    ```js
+    { 
+        __intf: 'RSP',
+        subsys: 'net',
+        seq: 17,
+        id: 0,
+        cmd: 'getAllDevIds',
+        status: 0,
+        data: [ 2, 4, 18, 61 ]
+    }
+    ```
 ********************************************
+
+<br />
 
 <a name="Indication"></a>
 ### Indication  
@@ -115,43 +119,47 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 - **Message**:  
     { __intf, subsys, type, id, data }  
 
-| Property | Type            | Description                                                                                                                                 |
-|----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| __intf   | String          | 'IND'                                                                                                                                       |
-| subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.                               |
-| type     | String          | There are few types of indication accepted, such as 'attrChanged'. Please see section [Indication types](#IndTypes) for details.            |
-| id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
-| data     | Depends         | Data along with the indication. Please see section [Data Model - Indication](#IndicationData) to learn the indicating data format.          |
+    | Property | Type            | Description                                                                                                                                 |
+    |----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+    | __intf   | String          | 'IND'                                                                                                                                       |
+    | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.                               |
+    | type     | String          | There are few types of indication accepted, such as 'attrChanged'. Please see section [Indication types](#IndTypes) for details.            |
+    | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
+    | data     | Depends         | Data along with the indication. Please see section [Data Model - Indication](#IndicationData) to learn the indicating data format.          |
 
 <a name="IndTypes"></a>
 - **Indication types**:  
 
-| Indication Type | Description                                                                        |
-|-----------------|------------------------------------------------------------------------------------|
-| attrChanged     | Attribue on a gadget or a device has changed.                                      |
-| statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-| netChanged      | Network parameters of a device has been changed.                                   |
-| attrReport      | A report message of certain attribute on a gadget.                                 |
-| devIncoming     | A device is incoming.                                                              |
-| gadIncoming     | A gadget is incoming.                                                              |
-| devLeaving      | A device is leaving.                                                               |
-| gadLeaving      | A gadget is leaving.                                                               |
-| permitJoining   | Server is now opened or closed for device joining network.                         |
+    | Indication Type | Description                                                                        |
+    |-----------------|------------------------------------------------------------------------------------|
+    | attrChanged     | Attribue on a gadget or a device has changed.                                      |
+    | statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
+    | netChanged      | Network parameters of a device has been changed.                                   |
+    | attrReport      | A report message of certain attribute on a gadget.                                 |
+    | devIncoming     | A device is incoming.                                                              |
+    | gadIncoming     | A gadget is incoming.                                                              |
+    | devLeaving      | A device is leaving.                                                               |
+    | gadLeaving      | A gadget is leaving.                                                               |
+    | permitJoining   | Server is now opened or closed for device joining network.                         |
 
 - **Message Example**:  
 
-```js
-{ 
-    __intf: 'IND',
-    subsys: 'gad',
-    type: 'attrChanged',
-    id: 147,            // sender of this indication is a gadget with id = 147
-    data: {
-        sensorValue: 24
+    ```js
+    { 
+        __intf: 'IND',
+        subsys: 'gad',
+        type: 'attrChanged',
+        id: 147,            // sender of this indication is a gadget with id = 147
+        data: {
+            sensorValue: 24
+        }
     }
-}
-```
+    ```
+
 ********************************************
+
+<br />
+
 <a name="DataModel"></a>  
 ## 3. Data Model  
 
@@ -160,17 +168,17 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 
 | Subsystem | Command      | Arguments (arg)          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |-----------|--------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| nwk       | getAllDevIds | { [ncName] }             | Get identifiers of all devices on freebird Server. **ncName** field is a string and is optional. If **ncName** is given, only identifiers of devices managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                   |
-| nwk       | getAllGadIds | { [ncName] }             | Get identifiers of all gadgets on freebird Server. **ncName** field is a string and is optional. If **ncName** is given, only identifiers of gadgets managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                   |
-| nwk       | getDevs      | { ids }                  | Get information of devices by their ids. **ids** is an array of numbers and each number is a device id, i.e., given `{ ids: [ 5, 6, 77 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| nwk       | getGads      | { ids }                  | Get gadget information by gadget id. **ids** is an array of numbers and each number is a gadget id, i.e., given `{ ids: [ 23, 14, 132 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| nwk       | getNetcores  | { ncNames }              | Get netcore information by netcore name. **ncNames** is an array of strings and each string is a netcore name, i.e., given `{ ncNames: [ 'ble-core', 'zigbee-core' ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| nwk       | getBlacklist | {}                       | Get blacklist of the banned devices. No arguments, hence the `arg` object is left empty.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| nwk       | permitJoin   | { ncName }               | Open or close for device to join the network.**ncName** is the name of which netcore you like to open or close for device joining. **ncName** should be a string. For example, given `{ ncName: 'zigbee-core' }` to let the zigbee network open for device joining.                                                                                                                                                                                                                                                                                                                          |
-| nwk       | maintain     | { ncName }               | Maintain the network. .**ncName** is the name of which netcore you like to maintain. **ncName** should be a string. When a netcore starts to maintain its own network, all devices managed by it will be refreshed. For example, given `{ ncName: 'ble-core' }` to let the BLE netcore do its maintenance.                                                                                                                                                                                                                                                                                   |
-| nwk       | reset        | { ncName }               | Reset the network. **ncName** is the name of which netcore you like to reset. **ncName** should be a string. Reset a network will remove all devices managed by that netcore. Once reset, the banned devices in the blacklist will also be removed.                                                                                                                                                                                                                                                                                                                                          |
-| nwk       | enable       | { ncName }               | Enable the network. **ncName** is the name of which netcore you like to enable. (The netcore is enabled by default.)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| nwk       | disable      | { ncName }               | Disable the network.**ncName** is the name of which netcore you like to disable. If netcore is disabled, no message can be send out and received from remote devices. That is, messages will be ignored and you will not get any message from the netcore on freebird Server.                                                                                                                                                                                                                                                                                                                |
+| net       | getAllDevIds | { [ncName] }             | Get identifiers of all devices on freebird Server. **ncName** field is a string and is optional. If **ncName** is given, only identifiers of devices managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                   |
+| net       | getAllGadIds | { [ncName] }             | Get identifiers of all gadgets on freebird Server. **ncName** field is a string and is optional. If **ncName** is given, only identifiers of gadgets managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                   |
+| net       | getDevs      | { ids }                  | Get information of devices by their ids. **ids** is an array of numbers and each number is a device id, i.e., given `{ ids: [ 5, 6, 77 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| net       | getGads      | { ids }                  | Get gadget information by gadget id. **ids** is an array of numbers and each number is a gadget id, i.e., given `{ ids: [ 23, 14, 132 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| net       | getNetcores  | { ncNames }              | Get netcore information by netcore name. **ncNames** is an array of strings and each string is a netcore name, i.e., given `{ ncNames: [ 'ble-core', 'zigbee-core' ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| net       | getBlacklist | {}                       | Get blacklist of the banned devices. No arguments, hence the `arg` object is left empty.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| net       | permitJoin   | { ncName }               | Open or close for device to join the network.**ncName** is the name of which netcore you like to open or close for device joining. **ncName** should be a string. For example, given `{ ncName: 'zigbee-core' }` to let the zigbee network open for device joining.                                                                                                                                                                                                                                                                                                                          |
+| net       | maintain     | { ncName }               | Maintain the network. .**ncName** is the name of which netcore you like to maintain. **ncName** should be a string. When a netcore starts to maintain its own network, all devices managed by it will be refreshed. For example, given `{ ncName: 'ble-core' }` to let the BLE netcore do its maintenance.                                                                                                                                                                                                                                                                                   |
+| net       | reset        | { ncName }               | Reset the network. **ncName** is the name of which netcore you like to reset. **ncName** should be a string. Reset a network will remove all devices managed by that netcore. Once reset, the banned devices in the blacklist will also be removed.                                                                                                                                                                                                                                                                                                                                          |
+| net       | enable       | { ncName }               | Enable the network. **ncName** is the name of which netcore you like to enable. (The netcore is enabled by default.)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| net       | disable      | { ncName }               | Disable the network.**ncName** is the name of which netcore you like to disable. If netcore is disabled, no message can be send out and received from remote devices. That is, messages will be ignored and you will not get any message from the netcore on freebird Server.                                                                                                                                                                                                                                                                                                                |
 | dev       | read         | { id, attrName }         | Read an attribute on a device. **id** is the id of which device you like to read from. **attrName** is the attribute you like to read. For example, given `{ id: 20, attrName: 'location' }` to read the location attribute from the device with id = 20.                                                                                                                                                                                                                                                                                                                                    |
 | dev       | write        | { id, attrName, value }  | Write value to an attribute on a device.**id** is the id of which device you like to write a value to. **attrName** is the attribute to be written. For example, given `{ id: 20, attrName: 'location', value: 'kitchen' }` to set the device location attribute to 'kitchen'.                                                                                                                                                                                                                                                                                                               |
 | dev       | remove       | { id }                   | Remove a device from the network. **id** is the id of which device to remove.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -193,17 +201,17 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 
 | Subsystem | Command Name | Response Data Type | Data Description                                     | Example                         |
 |-----------|--------------|--------------------|------------------------------------------------------|---------------------------------|
-| nwk       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]              |
-| nwk       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ] |
-| nwk       | getDevs      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]               |
-| nwk       | getGads      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]               |
-| nwk       | getNetcores  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]                 |
-| nwk       | getBlacklist | Object[]           | Array of banned device objects                       | [ [bannedDev](#bannedDevObj), ... ]              |
-| nwk       | permitJoin   | -                  | No data returned                                     | null                            |
-| nwk       | maintain     | -                  | No data returned                                     | null                            |
-| nwk       | reset        | -                  | No data returned                                     | null                            |
-| nwk       | enable       | -                  | No data returned                                     | null                            |
-| nwk       | disable      | -                  | No data returned                                     | null                            |
+| net       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]              |
+| net       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ] |
+| net       | getDevs      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]               |
+| net       | getGads      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]               |
+| net       | getNetcores  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]                 |
+| net       | getBlacklist | Object[]           | Array of banned device objects                       | [ [bannedDev](#bannedDevObj), ... ]              |
+| net       | permitJoin   | -                  | No data returned                                     | null                            |
+| net       | maintain     | -                  | No data returned                                     | null                            |
+| net       | reset        | -                  | No data returned                                     | null                            |
+| net       | enable       | -                  | No data returned                                     | null                            |
+| net       | disable      | -                  | No data returned                                     | null                            |
 | dev       | read         | Depends            | The read value. Can be anything                      | 3                               |
 | dev       | write        | Depends            | The written value. Can be anything                   | 'kitchen'                       |
 | dev       | remove       | String             | Device permanent address                             | '0x00124b0001ce4b89'            |
@@ -216,6 +224,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | exec         | Depends            | The data returned by the procedure. Can be anything  | 'completed'                     |
 | gad       | setReportCfg | Null               | No data returned                                     | null                            |
 | gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
+
+<br />
 
 <a name="devInfoObj"></a>
 * devInfo object  
@@ -282,6 +292,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
 
+<br />
+
 <a name="gadInfoObj"></a>
 * gadInfo object  
 
@@ -314,6 +326,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         description: 'This is a simple light controller'
     }
     ```
+
+<br />
+
 <a name="ncInfoObj"></a>
 * ncInfo object 
 
@@ -350,6 +365,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
 
+<br />
+
 <a name="bannedDevObj"></a>
 * bannedDev object  
 
@@ -367,6 +384,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         permanent: '0x00124b0001ce4b89'
     }
     ```
+
+<br />
 
 <a name="gadClasses"></a>
 * Gadget classes  
@@ -392,166 +411,167 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | magnetometer             | Magnetometer           |  
 | barometer                | Barometer              |  
 
+********************************************
+
+<br />
+
 <a name="IndicationData"></a>
 ### Indication  
 
 | Subsystem | Indication    | Data Type | Description                                                                        |
 |-----------|---------------|-----------|------------------------------------------------------------------------------------|
-| nwk       | permitJoining | Object    | Server is now opened or closed for device joining network.                         |
+| net       | permitJoining | Object    | Server is now opened or closed for device joining network.                         |
 | dev       | netChanged    | Object    | Network parameters of a device has been changed.                                   |
 | dev       | statusChanged | String    | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-| dev       | devIncoming   | Object    | A device is incoming.                                                              |
+| dev       | devIncoming   | Object    | A device is incoming. The data is a devInfo object                                 |
 | dev       | devLeaving    | Number    | A device is incoming.                                                              |
-| gad       | attrChanged   | Object    | Attribute(s) on a gadget or a device has changed.                                  |
-| gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                 |
-| gad       | gadIncoming   | Object    | A device is incoming.                                                              |
+| dev/gad   | attrChanged   | Object    | Attribute(s) on a gadget or a device has changed.                                  |
+| gad       | gadIncoming   | Object    | A gadget is incoming. The data is a gadInfo object                                 |
 | gad       | gadLeaving    | Number    | A gadget is leaving.                                                               |
+| gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                 |
 
-**Banned Device Information Example**  
+* Indication Example: permitJoining  
 
-
-<a name="DataRequest"></a>
-### Command Request/Response Data Model  
-
-(1) getIds
-
-(2) getDevs
-
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 22,
-    id: null,
-    cmd: 'getDevs',
-    args: {
-        ids: [ 2, 3 ]
+    ```js
+    // indMsg.subsys == 'net'
+    // indMsg.data is an object
+    {
+        netcore: 'zigbee-core',
+        permission: true
     }
-}
-```
+    ```
 
-**Response Example**
+* Indication Example: netChanged  
 
-```js
-{
-    subsys: 'nwk',
-    seq: 22,
-    id: null,
-    cmd: 'getDevs',
-    status: 'success'
-    data: [
-        {
-            id: 2,
-            name: 'xxx',
+    ```js
+    // indMsg.subsys == 'dev'
+    // indMsg.data is an object
+    {
+        address: {
+            dynamic: '192.168.1.32'
         },
-        {
-            id: 3,
-            name: 'yyyy',
-        }
-    ]
-}
-```
-
-(3) getGads
-
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 31,
-    id: null,
-    cmd: 'getGads',
-    args: {
-        ids: [ 16 ]
+        status: 'online'
     }
-}
-```
+    ```
 
-**Response Example**
+* Indication Example: statusChanged  
 
-```js
-{
-    subsys: 'nwk',
-    seq: 31,
-    id: null,
-    cmd: 'getGads',
-    status: 'success'
-    data: [
-        {
-            id: 16,
-            name: 'xxx',
-        }
-    ]
-}
-```
+    ```js
+    // indMsg.subsys == 'dev'
+    // indMsg.data is a string
+    'online'
+    ```
 
-(4) getNetCores
+* Indication Example: devIncoming  
 
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 4,
-    id: null,
-    cmd: 'getNetCores',
-    args: {
-        ncNames: [ 'ble-core', 'zigbee-core' ]
-    }
-}
-```
-
-**Response Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 4,
-    id: null,
-    cmd: 'getNetCores',
-    status: 'success'
-    data: [
-        {
-            name: 'ble-core',
-            protocol: 'ble 4.2'
-        {
-            name: 'zigbee-core',
-            protocol: 'zigbee pro 2007'
+    ```js
+    // indMsg.subsys == 'dev'
+    // indMsg.data is a devInfo object
+    {
+        id: 18,
+        netcore: 'mqtt-core',
+        role: 'client',         // depends on protocol
+        enable: true,
+        status: 'online'
+        address: {
+            permanent: '00:0c:29:ff:ed:7c',
+            dynamic: '192.168.1.24'
         },
-    ]
-}
-```
+        jointime: 1458008311,
+        traffic: {
+            in: 12,
+            out: 6
+        },
+        parent: 0,
+        gads: [ 5, 6, 7, 8 ]
 
-(5) getBlacklist
+        manufacturer: 'freebird',
+        model: 'lwmqn-7688-duo',
+        serial: 'lwmqn-2016-03-15-20',
+        version: {
+            hardware: 'v1.2.0',
+            software: 'v0.8.4',
+            firmware: 'v2.0.0'
+        },
+        power: {
+            type: 'line',
+            voltage: '5V'
+        },
 
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 121,
-    id: null,
-    cmd: 'getBlacklist',
-    args: {
-        ncName: 'ble-core'
+        // name, description, and location are writable and can be modified by users
+        name: 'sample_device',
+        description: 'This is a device example',
+        location: 'bedroom'
     }
-}
-```
+    ```
 
-**Response Example**
+* Indication Example: devLeaving  
 
-```js
-{
-    subsys: 'nwk',
-    seq: 121,
-    id: null,
-    cmd: 'getBlacklist',
-    status: 'success'
-    data: [ 'xxxxx', 'xxxxx' ]
-}
-```
+    ```js
+    // indMsg.subsys == 'dev'
+    // indMsg.data is a number
+    27
+    ```
+
+* Indication Example: attrChanged  
+
+    ```js
+    // indMsg.subsys == 'dev'
+    // indMsg.data is an object to inform the device attribute changes
+    {
+        description: 'Move from office to kitchen',
+        location: 'kitchen'
+    }
+
+    // indMsg.subsys == 'gad'
+    // indMsg.data is an object to inform the gadget attribute changes
+    {
+        onOff: 0
+    }
+    ```
+
+* Indication Example: gadIncoming  
+
+    ```js
+    // indMsg.subsys == 'gad'
+    // indMsg.data is a gadInfo object
+    {
+        id: 32,
+        owner: 18,
+        enable: true,
+        profile: '',
+        class: 'lightCtrl',
+        attributes: {
+            onOff: 1,
+            dimmer: 80
+        },
+        // name and description writable and can be modified by users
+        name: 'sampleLight',
+        description: 'This is a simple light controller'
+    }
+    ```
+
+* Indication Example: gadLeaving  
+
+    ```js
+    // indMsg.subsys == 'gad'
+    // indMsg.data is a number
+    32
+    ```
+
+* Indication Example: attrReport  
+
+    ```js
+    // indMsg.subsys == 'gad'
+    // indMsg.data is an object to report the gadget attribute
+    {
+        sensorValue: 18
+    }
+    ```
+
+********************************************
+
+<br />
 
 <a name="ErrorCode"></a>
 ### Error Code  
