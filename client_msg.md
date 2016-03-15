@@ -24,7 +24,7 @@ This document describes the APIs of how a freebird web Client can communicate wi
   
 The freebird framework has _**net**_, _**dev**_ and _**gad**_ subsystems responsible for network, device and gadget management, respectively. In brief, a network is formed with many devices, and each device may have some gadgets on it. A gadget is a real application in the manchine network.  
   
-Let's take a wifi weather station in a machine network for example. The weather station is made up of temperature, humidity and pm2.5 sensors, where each sensor is a gadget. A device, such as Arduino(with wifi connection), ESP8266, MT7688, RaspberryPi or Beaglebone, is the carrier of applications(gadgets). Now we know, this weather station has 3 gadgets on it, but only has a single device in it. Here is another example, we have a bluetooth low-energy (BLE) light switch in the network. This is a simple one-device-with-one-gadget machine, we can say "the light switch gadget is implemented on a TI CC2540 BLE SoC device."
+Let's take a wifi weather station in a machine network for example. The weather station is made up of temperature, humidity and pm2.5 sensors, where each sensor is a gadget. A device, such as Arduino(with wifi connection), ESP8266, MT7688, RaspberryPi or Beaglebone, is the carrier of applications(gadgets). Now we know, this weather station has 3 gadgets on it, but only has a single device in it. Here is another example, we have a bluetooth low-energy (BLE) light switch in the network. This is a simple one-device-with-one-gadget machine, we can say "there is only one gadget, a light switch, implemented on a TI CC2540 BLE SoC device."  
   
 The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framework well separates the machine management and application management from each other. This brings developers a more clear, convenient and flexible way in building up a IoT machine network.  
 
@@ -136,7 +136,7 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 | gadIncoming     | A gadget is incoming.                                                              |
 | devLeaving      | A device is leaving.                                                               |
 | gadLeaving      | A gadget is leaving.                                                               |
-| permitJoing     | Server is now opened or closed for device joining network.                         |
+| permitJoining   | Server is now opened or closed for device joining network.                         |
 
 - **Message Example**:  
 
@@ -184,19 +184,6 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 | gad       | setReportCfg | { id, attrName, cfg }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | gad       | getReportCfg | { id, attrName }         | Get the report settings of an attribute on a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 18,
-    id: 0,
-    cmd: 'getAllDevIds',
-    arg: {
-        ncName: 'ble-core'
-    }
-}
-```
 ********************************************
 
 <a name="ResponseData"></a>
@@ -230,21 +217,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | setReportCfg | Null               | No data returned                                     | null                            |
 | gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
 
-**Response Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 18,
-    id: 0,
-    cmd: 'getAllDevIds',
-    status: 'success'
-    data: [ 1, 2, 3, 7, 12, 19, 20, 21 ]
-}
-```
-
 <a name="devInfoObj"></a>
-* devInfo object 
+* devInfo object  
 
 | Property     | Type            | Description                                                                                           |
 |--------------|-----------------|-------------------------------------------------------------------------------------------------------|
@@ -267,49 +241,49 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | description  | String          | Device description. This attribute can be modified by user (via UI tools)                             |
 | location     | String          | Device location. This attribute can be modified by user (via UI tools)                                |
 
-**Device Information Example**  
+* Device Information Example  
 
 ```js
-{
-    id: 6,
-    netcore: 'mqtt-core',
-    role: 'client',         // depends on protocol
-    enable: true,
-    status: 'online'
-    address: {
-        permanent: '00:0c:29:ff:ed:7c',
-        dynamic: '192.168.1.73'
-    },
-    jointime: 1458008208,
-    traffic: {              // accumulated data (kB) since device joined
-        in: 86,
-        out: 2114
-    },
-    parent: 0,              // parent is the netcore
-    gads: [ 5, 6 ]          // gadgets it owns
+    {
+        id: 6,
+        netcore: 'mqtt-core',
+        role: 'client',         // depends on protocol
+        enable: true,
+        status: 'online'
+        address: {
+            permanent: '00:0c:29:ff:ed:7c',
+            dynamic: '192.168.1.73'
+        },
+        jointime: 1458008208,
+        traffic: {              // accumulated data (kB) since device joined
+            in: 86,
+            out: 2114
+        },
+        parent: 0,              // parent is the netcore
+        gads: [ 5, 6 ]          // gadgets it owns
 
-    manufacturer: 'freebird',
-    model: 'lwmqn-7688-duo',
-    serial: 'lwmqn-2016-03-15-01',
-    version: {
-        hardware: 'v1.2.0',
-        software: 'v0.8.4',
-        firmware: 'v2.0.0'
-    },
-    power: {
-        type: 'line',
-        voltage: '5V'
-    },
+        manufacturer: 'freebird',
+        model: 'lwmqn-7688-duo',
+        serial: 'lwmqn-2016-03-15-01',
+        version: {
+            hardware: 'v1.2.0',
+            software: 'v0.8.4',
+            firmware: 'v2.0.0'
+        },
+        power: {
+            type: 'line',
+            voltage: '5V'
+        },
 
-    // name, description, and location are writable and can be modified by users
-    name: 'sample_device',
-    description: 'This is a device example',
-    location: 'balcony'
-}
+        // name, description, and location are writable and can be modified by users
+        name: 'sample_device',
+        description: 'This is a device example',
+        location: 'balcony'
+    }
 ```
 
 <a name="gadInfoObj"></a>
-* gadInfo object 
+* gadInfo object  
 
 | Property     | Type            | Description                                                                                               |
 |--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
@@ -322,24 +296,77 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
 | description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
 
-**Gadget Information Example**  
+* Gadget Information Example  
 
-```js
-{
-    id: 308,
-    owner: 26,
-    enable: true,
-    profile: 'home_automation', // it will be an empty string '' if no profile given
-    class: 'lightCtrl',
-    attributes: {
-        onOff: 1,
-        dimmer: 80
-    },
-    // name and description writable and can be modified by users
-    name: 'sampleLight',
-    description: 'This is a simple light controller'
-}
-```
+    ```js
+    {
+        id: 308,
+        owner: 26,
+        enable: true,
+        profile: 'home_automation', // it will be an empty string '' if no profile given
+        class: 'lightCtrl',
+        attributes: {
+            onOff: 1,
+            dimmer: 80
+        },
+        // name and description writable and can be modified by users
+        name: 'sampleLight',
+        description: 'This is a simple light controller'
+    }
+    ```
+<a name="ncInfoObj"></a>
+* ncInfo object 
+
+| Property     | Type            | Description                                                                                      |
+|--------------|-----------------|--------------------------------------------------------------------------------------------------|
+| name         | String          | Netcore name                                                                                     |
+| enable       | Boolean         | Is this netcore enabled?                                                                         |
+| protocol     | Object          | [TBD] Network protocol of this netcore.                                                          |
+| numDevs      | Number          | Number of devices managed by this netcore                                                        |
+| numGads      | String          | Number of gadgets managed by this netcore                                                        |
+| startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
+| traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
+
+* Netcore Information Example  
+
+    ```js
+    {
+        name: 'zigbee-core',
+        enable: true,
+        protocol: {
+            application: 'zcl',
+            transport: '',
+            network: 'zigbee2007pro',
+            link: '',
+            phy: 'ieee802.15.4'
+        },
+        numDevs: 32,
+        numGads: 46,
+        startTime: 1458008208,
+        traffic: {
+            in: 44765,
+            out: 84114
+        }
+    }
+    ```
+
+<a name="bannedDevObj"></a>
+* bannedDev object  
+
+| Property     | Type            | Description                                                                                      |
+|--------------|-----------------|--------------------------------------------------------------------------------------------------|
+| netcore      | String          | Name of the netcore that bans the device                                                         |
+| permanent    | String          | Device permanent address                                                                         |
+
+
+* Banned Device Information Example  
+
+    ```js
+    {
+        netcore: 'zigbee-core',
+        permanent: '0x00124b0001ce4b89'
+    }
+    ```
 
 <a name="gadClasses"></a>
 * Gadget classes  
@@ -365,87 +392,22 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | magnetometer             | Magnetometer           |  
 | barometer                | Barometer              |  
 
-
-<a name="ncInfoObj"></a>
-* ncInfo object 
-
-| Property     | Type            | Description                                                                                      |
-|--------------|-----------------|--------------------------------------------------------------------------------------------------|
-| name         | String          | Netcore name                                                                                     |
-| enable       | Boolean         | Is this netcore enabled?                                                                         |
-| protocol     | Object          | [TBD] Network protocol of this netcore.                                                          |
-| numDevs      | Number          | Number of devices managed by this netcore                                                        |
-| numGads      | String          | Number of gadgets managed by this netcore                                                        |
-| startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
-| traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
-
-**Netcore Information Example**  
-
-```js
-{
-    name: 'zigbee-core',
-    enable: true,
-    protocol: {
-        application: 'zcl',
-        transport: '',
-        network: 'zigbee2007pro',
-        link: '',
-        phy: 'ieee802.15.4'
-    },
-    numDevs: 32,
-    numGads: 46,
-    startTime: 1458008208,
-    traffic: {
-        in: 44765,
-        out: 84114
-    }
-}
-```
-
-<a name="bannedDevObj"></a>
-* bannedDev object  
-
-| Property     | Type            | Description                                                                                      |
-|--------------|-----------------|--------------------------------------------------------------------------------------------------|
-| netcore      | String          | Name of the netcore that bans the device                                                         |
-| permanent    | String          | Device permanent address                                                                         |
-
-
-**Banned Device Information Example**  
-
-```js
-{
-    netcore: 'zigbee-core',
-    permanent: '0x00124b0001ce4b89'
-}
-```
-
 <a name="IndicationData"></a>
 ### Indication  
 
-| Indication Type | Description                                                                        |
-|-----------------|------------------------------------------------------------------------------------|
-| attrChanged     | Attribue on a gadget or a device has changed.                                      |
-| statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-| netChanged      | Network parameters of a device has been changed.                                   |
-| attrReport      | A report message of certain attribute on a gadget.                                 |
-| devIncoming     | A device is incoming.                                                              |
-| gadIncoming     | A gadget is incoming.                                                              |
-| devLeaving      | A device is leaving.                                                               |
-| gadLeaving      | A gadget is leaving.                                                               |
-| permitJoing     | Server is now opened or closed for device joining network.                         |
+| Subsystem | Indication    | Data Type | Description                                                                        |
+|-----------|---------------|-----------|------------------------------------------------------------------------------------|
+| nwk       | permitJoining | Object    | Server is now opened or closed for device joining network.                         |
+| dev       | netChanged    | Object    | Network parameters of a device has been changed.                                   |
+| dev       | statusChanged | String    | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
+| dev       | devIncoming   | Object    | A device is incoming.                                                              |
+| dev       | devLeaving    | Number    | A device is incoming.                                                              |
+| gad       | attrChanged   | Object    | Attribute(s) on a gadget or a device has changed.                                  |
+| gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                 |
+| gad       | gadIncoming   | Object    | A device is incoming.                                                              |
+| gad       | gadLeaving    | Number    | A gadget is leaving.                                                               |
 
-| Subsystem | Indication    | Data Type | Description                                                                        | Example |
-|-----------|---------------|-----------|------------------------------------------------------------------------------------|---------|
-| nwk       | permitJoing   |           | Server is now opened or closed for device joining network.                         |         |
-| dev       | netChanged    |           | Network parameters of a device has been changed.                                   |         |
-| dev       | statusChanged |           | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |         |
-| dev       | devIncoming   |           | A device is incoming.                                                              |         |
-| dev       | devLeaving    |           | A device is incoming.                                                              |         |
-| gad       | attrChanged   |           | Attribute on a gadget or a device has changed.                                     |         |
-| gad       | attrReport    |           | A report message of certain attribute on a gadget.                                 |         |
-| gad       | gadIncoming   |           | A device is incoming.                                                              |         |
-| gad       | gadLeaving    |           | A gadget is leaving.                                                               |         |
+**Banned Device Information Example**  
 
 
 <a name="DataRequest"></a>
@@ -590,8 +552,6 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     data: [ 'xxxxx', 'xxxxx' ]
 }
 ```
-<a name="DataIndication"></a>
-### Indication Data Model  
 
 <a name="ErrorCode"></a>
 ### Error Code  
