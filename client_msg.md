@@ -13,13 +13,13 @@ Freebird Client/Server Message Formats (through websocket)
     - [Request](#RequestData)  
     - [Response](#ResponseData)  
     - [Indication](#IndicationData)  
-4. [Error Codes](#ErrorCodes)  
-
+4. [RSP Status Codes](#RspCodes)  
+  
 <br />
-
+  
 <a name="Overiew"></a>  
 ## 1. Overview  
-
+  
 This document describes the APIs of how a freebird web Client can communicate with the freebird Server through [websocket](http://www.websocket.org/). The APIs are based on a _**Request**_, _**Response**_, and _**Indication**_ messages model. The message object (JSON) has a `__intf` field to denote which type a message is. The message type can be 'REQ', 'RSP' or 'IND'.  
   
 The freebird framework has _**net**_, _**dev**_ and _**gad**_ subsystems responsible for network, device and gadget management, respectively. In brief, a network is formed with many devices, and each device may have some gadgets on it. A gadget is a real application in the manchine network.  
@@ -27,24 +27,27 @@ The freebird framework has _**net**_, _**dev**_ and _**gad**_ subsystems respons
 Let's take a wifi weather station in a machine network for example. The weather station is made up of temperature, humidity and pm2.5 sensors, where each sensor is a gadget. A device, such as Arduino(with wifi connection), ESP8266, MT7688, RaspberryPi or Beaglebone, is the carrier of applications(gadgets). Now we know, this weather station has 3 gadgets on it, but only has a single device in it. Here is another example, we have a bluetooth low-energy (BLE) light switch in the network. This is a simple one-device-with-one-gadget machine, we can say "there is only one gadget, a light switch, implemented on a TI CC2540 BLE SoC device."  
   
 The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framework well separates the machine management and application management from each other. This brings developers a more clear, convenient and flexible way in building up a IoT machine network.  
-
+  
 ********************************************
-
+  
 <br />
-
+  
 <a name="Interfaces"></a>  
 ## 2. Interfaces  
-
+  
+In freebird, the web-client and server communicates with each other through websocket along with JSON message object. 
+The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote the interface.  
+  
 <a name="Request"></a>
 ### Request  
-
+  
 - **Direction**:  
-    Client sends to Server  
+    Client sends to Server to request something or to ask the server to perform certain operation.  
 - **Interface**:  
     __intf = 'REQ'  
-- **Message**:  
+- **Message keys**:  
     { __intf, subsys, seq, id, cmd, arg }  
-
+  
     | Property | Type            | Description                                                                                                               |
     |----------|-----------------|---------------------------------------------------------------------------------------------------------------------------|
     | __intf   | String          | 'REQ'                                                                                                                     |
@@ -52,10 +55,10 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
     | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                              |
     | id       | Number          | Id of the sender. id means **nothing** if (subsys === 'net'), **device id** if (subsys === 'dev'), and **gadget id** if (subsys === 'gad'). It is noticed that id = 0 is reserved for the freebird web-client and server. |
     | cmd      | String          | Command Identifier.                                                                                                       |
-    | arg      | Object          | A value-object taht contains command arguments.                                                                           |
-
+    | arg      | Object          | A value-object taht contains command arguments. Please see section [Request Data Model](#RequestData) to learn more about the `arg` data object.|
+  
 - **Message Example**:  
-
+  
     ```js
     { 
         __intf: 'REQ',
@@ -69,19 +72,19 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
     }
     ```
 ********************************************
-
+  
 <br />
-
+  
 <a name="Response"></a>
 ### Response  
-
+  
 - **Direction**:  
-    Server respond to Client  
+    Server respond to Client with the results of the client asking for.  
 - **Interface**:  
     __intf = 'RSP'  
-- **Message**:  
+- **Message keys**:  
     { __intf, subsys, seq, id, cmd, status, data }  
-
+  
     | Property | Type            | Description                                                                                                                        |
     |----------|-----------------|------------------------------------------------------------------------------------------------------------------------------------|
     | __intf   | String          | 'RSP'                                                                                                                              |
@@ -90,10 +93,10 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
     | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
     | cmd      | String          | Command Identifier.                                                                                                                |
     | status   | Number          | Status code.                                                                                                                       |
-    | data     | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
-
+    | data     | Depends         | Data along with the response. To learn more about the data format corresponding to each command, please see section [Response Data Model](#ResponseData). |
+  
 - **Message Example**:  
-
+  
     ```js
     { 
         __intf: 'RSP',
@@ -106,17 +109,17 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
     }
     ```
 ********************************************
-
+  
 <br />
-
+  
 <a name="Indication"></a>
 ### Indication  
-
+  
 - **Direction**:  
     Server indicates Client  
 - **Interface**:  
     __intf = 'IND'  
-- **Message**:  
+- **Message keys**:  
     { __intf, subsys, type, id, data }  
 
     | Property | Type            | Description                                                                                                                                 |
@@ -125,25 +128,25 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
     | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.                               |
     | type     | String          | There are few types of indication accepted, such as 'attrChanged'. Please see section [Indication types](#IndTypes) for details.            |
     | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
-    | data     | Depends         | Data along with the indication. Please see section [Data Model - Indication](#IndicationData) to learn the indicating data format.          |
-
+    | data     | Depends         | Data along with the indication. Please see section [Indication Data Model](#IndicationData) to learn more about the indicating data format. |
+  
 <a name="IndTypes"></a>
 - **Indication types**:  
-
+  
     | Indication Type | Description                                                                        |
     |-----------------|------------------------------------------------------------------------------------|
-    | attrChanged     | Attribue on a gadget or a device has changed.                                      |
-    | statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-    | netChanged      | Network parameters of a device has been changed.                                   |
-    | attrReport      | A report message of certain attribute on a gadget.                                 |
-    | devIncoming     | A device is incoming.                                                              |
-    | gadIncoming     | A gadget is incoming.                                                              |
-    | devLeaving      | A device is leaving.                                                               |
-    | gadLeaving      | A gadget is leaving.                                                               |
-    | permitJoining   | Server is now opened or closed for device joining network.                         |
-
+    | 'attrChanged'   | Attribue on a gadget or a device has changed.                                      |
+    | 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
+    | 'netChanged'    | Network parameters of a device has been changed.                                   |
+    | 'attrReport'    | A report message of certain attribute on a gadget.                                 |
+    | 'devIncoming'   | A device is incoming.                                                              |
+    | 'gadIncoming'   | A gadget is incoming.                                                              |
+    | 'devLeaving'    | A device is leaving.                                                               |
+    | 'gadLeaving'    | A gadget is leaving.                                                               |
+    | 'permitJoining' | Server is now opened or closed for device joining network.                         |
+  
 - **Message Example**:  
-
+  
     ```js
     { 
         __intf: 'IND',
@@ -155,17 +158,21 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
         }
     }
     ```
-
+  
 ********************************************
-
+  
 <br />
-
+  
 <a name="DataModel"></a>  
 ## 3. Data Model  
-
+  
+The data model presents the `arg` and `data` format in the REQ/RSP/IND messages.  
+  
 <a name="RequestData"></a>
 ### Request  
-
+  
+The request message is an object with keys { __intf, subsys, seq, id, cmd, arg }. The following table gives the details of each API.  
+  
 | Subsystem | Command      | Arguments (arg)          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |-----------|--------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | net       | getAllDevIds | { [ncName] }             | Get identifiers of all devices on freebird Server. **ncName** field is a string and is optional. If **ncName** is given, only identifiers of devices managed by that netcore will be returned from Server.                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -191,45 +198,45 @@ The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framewo
 | gad       | exec         | { id, attrName[, args] } | Invoke a remote procedure on a gadget. **id** is the id of which gadget you like to perform its particular procedure. **attrName** is the attribute name of an executable procedure. **args** is an array of parameters given in order to meet the procedure signature. The signature depends on how a developer declare his(/her) own procedure. For example, given `{ id: 9, attrName: 'blink', value: [ 10, 500 ] }` to blink a LED on a gadget 10 times with 500ms interval.                                                                                                             |
 | gad       | setReportCfg | { id, attrName, cfg }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | gad       | getReportCfg | { id, attrName }         | Get the report settings of an attribute on a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-
+  
 ********************************************
-
+  
 <a name="ResponseData"></a>
 ### Response  
-
+  
 The response message is an object with keys { __intf, subsys, seq, id, cmd, status, data }. `status` shows if the request is successful. The `data` field contains the respond data according to the request. `data` will be null if the request is unsuccessful.  
-
-| Subsystem | Command Name | Response Data Type | Data Description                                     | Example                         |
-|-----------|--------------|--------------------|------------------------------------------------------|---------------------------------|
-| net       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]              |
-| net       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ] |
-| net       | getDevs      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]               |
-| net       | getGads      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]               |
-| net       | getNetcores  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]                 |
-| net       | getBlacklist | Object[]           | Array of banned device objects                       | [ [bannedDev](#bannedDevObj), ... ]              |
-| net       | permitJoin   | -                  | No data returned                                     | null                            |
-| net       | maintain     | -                  | No data returned                                     | null                            |
-| net       | reset        | -                  | No data returned                                     | null                            |
-| net       | enable       | -                  | No data returned                                     | null                            |
-| net       | disable      | -                  | No data returned                                     | null                            |
-| dev       | read         | Depends            | The read value. Can be anything                      | 3                               |
-| dev       | write        | Depends            | The written value. Can be anything                   | 'kitchen'                       |
-| dev       | remove       | String             | Device permanent address                             | '0x00124b0001ce4b89'            |
-| dev       | identify     | -                  | No data returned                                     | null                            |
-| dev       | ping         | Number             | Round-trip time in ms                                | 12                              |
-| dev       | ban          | -                  | No data returned                                     | null                            |
-| dev       | unban        | -                  | No data returned                                     | null                            |
-| gad       | read         | Depends            | The read value. Can be anything                      | 371.42                          |
-| gad       | write        | Depends            | The written value. Can be anything                   | false                           |
-| gad       | exec         | Depends            | The data returned by the procedure. Can be anything  | 'completed'                     |
-| gad       | setReportCfg | Null               | No data returned                                     | null                            |
-| gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
-
+  
+| Subsystem | Command Name | Response Data Type | Data Description                                     | Example                             |
+|-----------|--------------|--------------------|------------------------------------------------------|-------------------------------------|
+| net       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]                  |
+| net       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ]     |
+| net       | getDevs      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]    |
+| net       | getGads      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]    |
+| net       | getNetcores  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]       |
+| net       | getBlacklist | Object[]           | Array of banned device objects                       | [ [bannedDev](#bannedDevObj), ... ] |
+| net       | permitJoin   | -                  | No data returned                                     | null                                |
+| net       | maintain     | -                  | No data returned                                     | null                                |
+| net       | reset        | -                  | No data returned                                     | null                                |
+| net       | enable       | -                  | No data returned                                     | null                                |
+| net       | disable      | -                  | No data returned                                     | null                                |
+| dev       | read         | Depends            | The read value. Can be anything                      | 3                                   |
+| dev       | write        | Depends            | The written value. Can be anything                   | 'kitchen'                           |
+| dev       | remove       | String             | Device permanent address                             | '0x00124b0001ce4b89'                |
+| dev       | identify     | -                  | No data returned                                     | null                                |
+| dev       | ping         | Number             | Round-trip time in ms                                | 12                                  |
+| dev       | ban          | -                  | No data returned                                     | null                                |
+| dev       | unban        | -                  | No data returned                                     | null                                |
+| gad       | read         | Depends            | The read value. Can be anything                      | 371.42                              |
+| gad       | write        | Depends            | The written value. Can be anything                   | false                               |
+| gad       | exec         | Depends            | The data returned by the procedure. Can be anything  | 'completed'                         |
+| gad       | setReportCfg | Null               | No data returned                                     | null                                |
+| gad       | getReportCfg | Object             | Report settings object                               | rptCfg                              |
+  
 <br />
-
+  
 <a name="devInfoObj"></a>
 * devInfo object  
-
+  
     | Property     | Type            | Description                                                                                           |
     |--------------|-----------------|-------------------------------------------------------------------------------------------------------|
     | id           | Number          | Device id                                                                                             |
@@ -250,9 +257,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     | name         | String          | Device name. This attribute can be modified by user (via UI tools)                                    |
     | description  | String          | Device description. This attribute can be modified by user (via UI tools)                             |
     | location     | String          | Device location. This attribute can be modified by user (via UI tools)                                |
-
+  
 * Device Information (devInfo) Example  
-
+  
     ```js
     {
         id: 6,
@@ -291,12 +298,12 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         location: 'balcony'
     }
     ```
-
+  
 <br />
-
+  
 <a name="gadInfoObj"></a>
 * gadInfo object  
-
+  
     | Property     | Type            | Description                                                                                               |
     |--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
     | id           | Number          | Gadget id                                                                                                 |
@@ -307,9 +314,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     | attributes   | Object          | Attributes of this gadget                                                                                 |
     | name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
     | description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
-
+  
 * Gadget Information (gadInfo) Example  
-
+  
     ```js
     {
         id: 308,
@@ -326,12 +333,12 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         description: 'This is a simple light controller'
     }
     ```
-
+  
 <br />
-
+  
 <a name="ncInfoObj"></a>
-* ncInfo object 
-
+* ncInfo object  
+  
     | Property     | Type            | Description                                                                                      |
     |--------------|-----------------|--------------------------------------------------------------------------------------------------|
     | name         | String          | Netcore name                                                                                     |
@@ -341,9 +348,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     | numGads      | String          | Number of gadgets managed by this netcore                                                        |
     | startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
     | traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
-
+  
 * Netcore Information (ncInfo) Example  
-
+  
     ```js
     {
         name: 'zigbee-core',
@@ -364,60 +371,59 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         }
     }
     ```
-
+  
 <br />
-
+  
 <a name="bannedDevObj"></a>
 * bannedDev object  
-
-    | Property     | Type            | Description                                                                                      |
-    |--------------|-----------------|--------------------------------------------------------------------------------------------------|
-    | netcore      | String          | Name of the netcore that bans the device                                                         |
-    | permanent    | String          | Device permanent address                                                                         |
-
-
+  
+    | Property     | Type            | Description                              |
+    |--------------|-----------------|------------------------------------------|
+    | netcore      | String          | Name of the netcore that bans the device |
+    | permanent    | String          | Device permanent address                 |
+  
 * Banned Device Information (bannedDev) Example  
-
+  
     ```js
     {
         netcore: 'zigbee-core',
         permanent: '0x00124b0001ce4b89'
     }
     ```
-
+  
 <br />
-
+  
 <a name="gadClasses"></a>
 * Gadget classes  
-
-| Class Name               | Description            |  
-|--------------------------|------------------------|  
-| dIn                      | Digital Input          |  
-| dOut                     | Digital Output         |  
-| aIn                      | Analogue Input         |  
-| aOut                     | Analogue Output        |  
-| generic                  | Generic Sensor         |  
-| illuminance              | Illuminance Sensor     |  
-| presence                 | Presence Sensor        |  
-| temperature              | Temperature Sensor     |  
-| humidity                 | Humidity Sensor        |  
-| pwrMea                   | Power Measurement      |  
-| actuation                | Actuation              |  
-| setPoint                 | Set Point              |  
-| loadCtrl                 | Load Control           |  
-| lightCtrl                | Light Control          |  
-| pwrCtrl                  | Power Control          |  
-| accelerometer            | Accelerometer          |  
-| magnetometer             | Magnetometer           |  
-| barometer                | Barometer              |  
-
+  
+| Class Name               | Description            |
+|--------------------------|------------------------|
+| dIn                      | Digital Input          |
+| dOut                     | Digital Output         |
+| aIn                      | Analogue Input         |
+| aOut                     | Analogue Output        |
+| generic                  | Generic Sensor         |
+| illuminance              | Illuminance Sensor     |
+| presence                 | Presence Sensor        |
+| temperature              | Temperature Sensor     |
+| humidity                 | Humidity Sensor        |
+| pwrMea                   | Power Measurement      |
+| actuation                | Actuation              |
+| setPoint                 | Set Point              |
+| loadCtrl                 | Load Control           |
+| lightCtrl                | Light Control          |
+| pwrCtrl                  | Power Control          |
+| accelerometer            | Accelerometer          |
+| magnetometer             | Magnetometer           |
+| barometer                | Barometer              |
+  
 ********************************************
-
+  
 <br />
-
+  
 <a name="IndicationData"></a>
 ### Indication  
-
+  
 | Subsystem | Indication    | Data Type | Description                                                                        |
 |-----------|---------------|-----------|------------------------------------------------------------------------------------|
 | net       | permitJoining | Object    | Server is now opened or closed for device joining network.                         |
@@ -429,9 +435,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | gadIncoming   | Object    | A gadget is incoming. The data is a gadInfo object                                 |
 | gad       | gadLeaving    | Number    | A gadget is leaving.                                                               |
 | gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                 |
-
+  
 * Indication Example: permitJoining  
-
+  
     ```js
     // indMsg.subsys == 'net'
     // indMsg.data is an object
@@ -440,9 +446,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         permission: true
     }
     ```
-
+  
 * Indication Example: netChanged  
-
+  
     ```js
     // indMsg.subsys == 'dev'
     // indMsg.data is an object
@@ -453,17 +459,17 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         status: 'online'
     }
     ```
-
+  
 * Indication Example: statusChanged  
-
+  
     ```js
     // indMsg.subsys == 'dev'
     // indMsg.data is a string
     'online'
     ```
-
+  
 * Indication Example: devIncoming  
-
+  
     ```js
     // indMsg.subsys == 'dev'
     // indMsg.data is a devInfo object
@@ -504,17 +510,17 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         location: 'bedroom'
     }
     ```
-
+  
 * Indication Example: devLeaving  
-
+  
     ```js
     // indMsg.subsys == 'dev'
     // indMsg.data is a number
     27
     ```
-
+  
 * Indication Example: attrChanged  
-
+  
     ```js
     // indMsg.subsys == 'dev'
     // indMsg.data is an object to inform the device attribute changes
@@ -529,9 +535,9 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         onOff: 0
     }
     ```
-
+  
 * Indication Example: gadIncoming  
-
+  
     ```js
     // indMsg.subsys == 'gad'
     // indMsg.data is a gadInfo object
@@ -550,17 +556,17 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         description: 'This is a simple light controller'
     }
     ```
-
+  
 * Indication Example: gadLeaving  
-
+  
     ```js
     // indMsg.subsys == 'gad'
     // indMsg.data is a number
     32
     ```
-
+  
 * Indication Example: attrReport  
-
+  
     ```js
     // indMsg.subsys == 'gad'
     // indMsg.data is an object to report the gadget attribute
@@ -568,11 +574,24 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         sensorValue: 18
     }
     ```
-
+  
 ********************************************
-
+  
 <br />
-
-<a name="ErrorCode"></a>
-### Error Code  
-
+  
+<a name="RspCodes"></a>
+### RSP Status Code  
+  
+[**CAUTION**] The response code is TBD and is subject to change.  
+  
+| Code Id | Code Name      | Description                                                                        |
+|---------|----------------|------------------------------------------------------------------------------------|
+| 0       | 'success'      | Response is ok                                                                     |
+| 1       | 'fail'         | Operation fails                                                                    |
+| 2       | 'busy'         | Server or remote device is busy. Try latter                                        |
+| 3       | 'unavail'      | Remote device is unreachable, it may be offline or sleeping                        |
+| 4       | 'badRequest'   | Request parameter in arguments cannot be recognized or given with wrong type       |
+| 5       | 'notFound'     | The allocated device, gadget is not found                                          |
+| 6       | 'notAllowed'   | Method is not allowed. For example, write a value to a read-only attribute         |
+| 7       | 'unauthorized' | The operation is unauthorized                                                      |
+| 8       | 'timeout'      | Request timeout                                                                    |
