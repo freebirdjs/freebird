@@ -235,7 +235,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <br />
   
 <a name="devInfoObj"></a>
-* devInfo object  
+- **devInfo object**  
   
     | Property     | Type            | Description                                                                                           |
     |--------------|-----------------|-------------------------------------------------------------------------------------------------------|
@@ -302,7 +302,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <br />
   
 <a name="gadInfoObj"></a>
-* gadInfo object  
+- **gadInfo object**  
   
     | Property     | Type            | Description                                                                                               |
     |--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
@@ -337,7 +337,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <br />
   
 <a name="ncInfoObj"></a>
-* ncInfo object  
+- **ncInfo object**  
   
     | Property     | Type            | Description                                                                                      |
     |--------------|-----------------|--------------------------------------------------------------------------------------------------|
@@ -375,7 +375,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <br />
   
 <a name="bannedDevObj"></a>
-* bannedDev object  
+- **bannedDev object**  
   
     | Property     | Type            | Description                              |
     |--------------|-----------------|------------------------------------------|
@@ -390,11 +390,11 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         permanent: '0x00124b0001ce4b89'
     }
     ```
-  
+
 <br />
   
 <a name="gadClasses"></a>
-* Gadget classes  
+- **Gadget classes**  
   
 | Class Name               | Description            |
 |--------------------------|------------------------|
@@ -418,7 +418,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | barometer                | Barometer              |
   
 ********************************************
-  
+
 <br />
   
 <a name="IndicationData"></a>
@@ -436,7 +436,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | gadLeaving    | Number    | A gadget is leaving.                                                               |
 | gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                 |
   
-* Indication Example: permitJoining  
+* Indication Example: 'permitJoining'  
   
     ```js
     // indMsg.subsys == 'net'
@@ -447,7 +447,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
   
-* Indication Example: netChanged  
+* Indication Example: 'netChanged'  
   
     ```js
     // indMsg.subsys == 'dev'
@@ -460,7 +460,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
   
-* Indication Example: statusChanged  
+* Indication Example: 'statusChanged'  
   
     ```js
     // indMsg.subsys == 'dev'
@@ -468,7 +468,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     'online'
     ```
   
-* Indication Example: devIncoming  
+* Indication Example: 'devIncoming'  
   
     ```js
     // indMsg.subsys == 'dev'
@@ -511,7 +511,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
   
-* Indication Example: devLeaving  
+* Indication Example: 'devLeaving'  
   
     ```js
     // indMsg.subsys == 'dev'
@@ -519,7 +519,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     27
     ```
   
-* Indication Example: attrChanged  
+* Indication Example: 'attrChanged'  
   
     ```js
     // indMsg.subsys == 'dev'
@@ -536,7 +536,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
   
-* Indication Example: gadIncoming  
+* Indication Example: 'gadIncoming'  
   
     ```js
     // indMsg.subsys == 'gad'
@@ -557,7 +557,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     }
     ```
   
-* Indication Example: gadLeaving  
+* Indication Example: 'gadLeaving'  
   
     ```js
     // indMsg.subsys == 'gad'
@@ -565,7 +565,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     32
     ```
   
-* Indication Example: attrReport  
+* Indication Example: 'attrReport'  
   
     ```js
     // indMsg.subsys == 'gad'
@@ -576,7 +576,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     ```
   
 ********************************************
-  
+
 <br />
   
 <a name="RspCodes"></a>
