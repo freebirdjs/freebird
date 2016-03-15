@@ -20,8 +20,14 @@ Freebird Client/Server Message Formats (through websocket)
 <a name="Overiew"></a>  
 ## 1. Overview  
 
-This document describes the APIs of how a Freebird Web Client can communicate with the Freebird Server through [websocket](http://www.websocket.org/). The APIs are based on a _**Request**_, _**Response**_, and _**Indication**_ JSON messages. The message object (JSON) has a `__intf` field to denote which type of a message is. The value of `__intf` property can be either 'REQ', 'RSP' or 'IND'.  
+This document describes the APIs of how a freebird web Client can communicate with the freebird Server through [websocket](http://www.websocket.org/). The APIs are based on a _**Request**_, _**Response**_, and _**Indication**_ messages model. The message object (JSON) has a `__intf` field to denote which type a message is. The message type can be 'REQ', 'RSP' or 'IND'.  
   
+The freebird framework has _**net**_, _**dev**_ and _**gad**_ subsystems responsible for network, device and gadget management, respectively. In brief, a network is formed with many devices, and each device may have some gadgets on it. A gadget is a real application in the manchine network.  
+  
+Let's take a wifi weather station in a machine network for example. The weather station is made up of temperature, humidity and pm2.5 sensors, where each sensor is a gadget. A device, such as Arduino(with wifi connection), ESP8266, MT7688, RaspberryPi or Beaglebone, is the carrier of applications(gadgets). Now we know, this weather station has 3 gadgets on it, but only has a single device in it. Here is another example, we have a bluetooth low-energy (BLE) light switch in the network. This is a simple one-device-with-one-gadget machine, we can say "the light switch gadget is implemented on a TI CC2540 BLE SoC device."
+  
+The concept of _**net**_, _**dev**_ and _**gad**_ subsystems in freebird framework well separates the machine management and application management from each other. This brings developers a more clear, convenient and flexible way in building up a IoT machine network.  
+
 ********************************************
 
 <br />
@@ -177,6 +183,20 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 | gad       | exec         | { id, attrName[, args] } | Invoke a remote procedure on a gadget. **id** is the id of which gadget you like to perform its particular procedure. **attrName** is the attribute name of an executable procedure. **args** is an array of parameters given in order to meet the procedure signature. The signature depends on how a developer declare his(/her) own procedure. For example, given `{ id: 9, attrName: 'blink', value: [ 10, 500 ] }` to blink a LED on a gadget 10 times with 500ms interval.                                                                                                             |
 | gad       | setReportCfg | { id, attrName, cfg }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | gad       | getReportCfg | { id, attrName }         | Get the report settings of an attribute on a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+
+**Request Example**
+
+```js
+{
+    subsys: 'nwk',
+    seq: 18,
+    id: 0,
+    cmd: 'getAllDevIds',
+    arg: {
+        ncName: 'ble-core'
+    }
+}
+```
 ********************************************
 
 <a name="ResponseData"></a>
@@ -188,10 +208,10 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 |-----------|--------------|--------------------|------------------------------------------------------|---------------------------------|
 | nwk       | getAllDevIds | Number[]           | Array of device identifiers                          | [ 1, 2, 3, 8, 12 ]              |
 | nwk       | getAllGadIds | Number[]           | Array of gadget identifiers                          | [ 2, 3, 5, 11, 12, 13, 14, 15 ] |
-| nwk       | getDevs      | Object[]           | Array of device information objects                  | [ devInfo, ...  ]               |
-| nwk       | getGads      | Object[]           | Array of gadget information objects                  | [ gadInfo , ... ]               |
-| nwk       | getNetcores  | Object[]           | Array of netcore information objects                 | [ ncInfo, ... ]                 |
-| nwk       | getBlacklist | Object[]           | Array of banned device objects                       | [ bannedDev, ... ]              |
+| nwk       | getDevs      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]               |
+| nwk       | getGads      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]               |
+| nwk       | getNetcores  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]                 |
+| nwk       | getBlacklist | Object[]           | Array of banned device objects                       | [ [bannedDev](#bannedDevObj), ... ]              |
 | nwk       | permitJoin   | -                  | No data returned                                     | null                            |
 | nwk       | maintain     | -                  | No data returned                                     | null                            |
 | nwk       | reset        | -                  | No data returned                                     | null                            |
@@ -210,7 +230,21 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | setReportCfg | Null               | No data returned                                     | null                            |
 | gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
 
-#### devInfo object 
+**Response Example**
+
+```js
+{
+    subsys: 'nwk',
+    seq: 18,
+    id: 0,
+    cmd: 'getAllDevIds',
+    status: 'success'
+    data: [ 1, 2, 3, 7, 12, 19, 20, 21 ]
+}
+```
+
+<a name="devInfoObj"></a>
+* devInfo object 
 
 | Property     | Type            | Description                                                                                           |
 |--------------|-----------------|-------------------------------------------------------------------------------------------------------|
@@ -274,7 +308,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 }
 ```
 
-#### gadInfo object 
+<a name="gadInfoObj"></a>
+* gadInfo object 
 
 | Property     | Type            | Description                                                                                               |
 |--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
@@ -286,6 +321,25 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | attributes   | Object          | Attributes of this gadget                                                                                 |
 | name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
 | description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
+
+**Gadget Information Example**  
+
+```js
+{
+    id: 308,
+    owner: 26,
+    enable: true,
+    profile: 'home_automation', // it will be an empty string '' if no profile given
+    class: 'lightCtrl',
+    attributes: {
+        onOff: 1,
+        dimmer: 80
+    },
+    // name and description writable and can be modified by users
+    name: 'sampleLight',
+    description: 'This is a simple light controller'
+}
+```
 
 <a name="gadClasses"></a>
 * Gadget classes  
@@ -311,35 +365,18 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | magnetometer             | Magnetometer           |  
 | barometer                | Barometer              |  
 
-**Gadget Information Example**  
 
-```js
-{
-    id: 308,
-    owner: 26,
-    enable: true,
-    profile: 'home_automation', // it will be an empty string '' if no profile given
-    class: 'lightCtrl',
-    attributes: {
-        onOff: 1,
-        dimmer: 80
-    },
-    // name and description writable and can be modified by users
-    name: 'sampleLight',
-    description: 'This is a simple light controller'
-}
-```
-
-#### ncInfo object 
+<a name="ncInfoObj"></a>
+* ncInfo object 
 
 | Property     | Type            | Description                                                                                      |
 |--------------|-----------------|--------------------------------------------------------------------------------------------------|
 | name         | String          | Netcore name                                                                                     |
 | enable       | Boolean         | Is this netcore enabled?                                                                         |
-| protocol     | Object          | Is this gadget enabled?                                                                          |
-| numDevs      | Number          | Gadget id                                                                                        |
-| numGads      | String          | Name of the netcore that holds this gadget                                                       |
-| startTime    | String          | Name of the netcore that holds this gadget                                                       |
+| protocol     | Object          | [TBD] Network protocol of this netcore.                                                          |
+| numDevs      | Number          | Number of devices managed by this netcore                                                        |
+| numGads      | String          | Number of gadgets managed by this netcore                                                        |
+| startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
 | traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
 
 **Netcore Information Example**  
@@ -365,7 +402,8 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 }
 ```
 
-#### bannedDev object 
+<a name="bannedDevObj"></a>
+* bannedDev object  
 
 | Property     | Type            | Description                                                                                      |
 |--------------|-----------------|--------------------------------------------------------------------------------------------------|
@@ -414,34 +452,6 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 ### Command Request/Response Data Model  
 
 (1) getIds
-
-**Request Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 18,
-    id: null,
-    cmd: 'getIds',
-    arg: {
-        ncName: 'ble-core',
-        type: 'dev'
-    }
-}
-```
-
-**Response Example**
-
-```js
-{
-    subsys: 'nwk',
-    seq: 18,
-    id: null,
-    cmd: 'getIds',
-    status: 'success'
-    data: [ 1, 2, 3, 7, 12, 19, 20, 21 ]
-}
-```
 
 (2) getDevs
 
