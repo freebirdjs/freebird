@@ -113,23 +113,24 @@ This document describes the APIs of how a Freebird Web Client can communicate wi
 |----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | __intf   | String          | 'IND'                                                                                                                                       |
 | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.                               |
-| type     | String          | There are few types of indication accepted. Please see section [Indication types](#IndTypes) for details.                                   |
+| type     | String          | There are few types of indication accepted, such as 'attrChanged'. Please see section [Indication types](#IndTypes) for details.            |
 | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
-| data     | Depends         | Data along with the indication. Please see section [Data Model](#DataModel) to learn the indicating data format.                            |
+| data     | Depends         | Data along with the indication. Please see section [Data Model - Indication](#IndicationData) to learn the indicating data format.          |
 
+<a name="IndTypes"></a>
 - **Indication types**:  
 
 | Indication Type | Description                                                                        |
 |-----------------|------------------------------------------------------------------------------------|
-| 'attrChanged'   | Attribue on a gadget or a device has changed.                                      |
-| 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-| 'netChanged'    | Network parameters of a device has been changed.                                   |
-| 'attrReport'    | A report message of certain attribute on a gadget.                                 |
-| 'devIncoming'   | A device is incoming.                                                              |
-| 'gadIncoming'   | A gadget is incoming.                                                              |
-| 'devLeaving'    | A device is leaving.                                                               |
-| 'gadLeaving'    | A gadget is leaving.                                                               |
-| 'permitJoing'   | Server is now opened or closed for device joining network.                         |
+| attrChanged     | Attribue on a gadget or a device has changed.                                      |
+| statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
+| netChanged      | Network parameters of a device has been changed.                                   |
+| attrReport      | A report message of certain attribute on a gadget.                                 |
+| devIncoming     | A device is incoming.                                                              |
+| gadIncoming     | A gadget is incoming.                                                              |
+| devLeaving      | A device is leaving.                                                               |
+| gadLeaving      | A gadget is leaving.                                                               |
+| permitJoing     | Server is now opened or closed for device joining network.                         |
 
 - **Message Example**:  
 
@@ -209,43 +210,192 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | setReportCfg | Null               | No data returned                                     | null                            |
 | gad       | getReportCfg | Object             | Report settings object                               | rptCfg                          |
 
-#### devInfo  
+#### devInfo object 
 
-| Property     | Type            | Description                                                                       |
-|--------------|-----------------|-----------------------------------------------------------------------------------|
-| id           | Number          | Device id                                                                         |
-| nc           | String          | Name of the netcore that holds this device                                        |
-| enable       | Boolean         | Is this device enabled?                                                           |
-| jointime     | Number          | When this device joined the network? UNIX time in secs                            |
-| status       | String          | Device status, can be 'online', 'sleep', or 'offline'                             |
-| name         | String          | Device name. Can be set by user                                                   |
-| description  | String          | Device description. Can be set by user                                            |
-| address      | Object          | { permanent: '00:0c:29:ff:ed:7c', dynamic: '192.168.1.101' }                                      |
-| role         | String          | Device role. Depends on protocol, i.e., 'peripheral' for BLE devices, 'router' for zigbee devices |
-| parent       | Number          | Parent device id. Default is 0 which is a number reserved for netcores.           |
-| manufacturer | String          | Manufacturer name |
-| model        | String          | Model name |
-| serial       | Depends         | Serial number in string |
-| version      | Object          | { hardware: '', software: 'v1.2.2', firmware: 'v0.0.8' } |
-| power        | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
-| location     | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
-| gads         | Depends         | Data along with the response. To learn the data format corresponding to each command, please see section [Data Model](#DataModel). |
+| Property     | Type            | Description                                                                                           |
+|--------------|-----------------|-------------------------------------------------------------------------------------------------------|
+| id           | Number          | Device id                                                                                             |
+| netcore      | String          | Name of the netcore that holds this device                                                            |
+| role         | String          | Device role. Depends on protocol, i.e., 'peripheral' for BLE devices, 'router' for zigbee devices     |
+| enable       | Boolean         | Is this device enabled?                                                                               |
+| status       | String          | Device status, can be 'online', 'sleep', or 'offline'                                                 |
+| address      | Object          | Device permanent and dynamic addresses. { permanent: '00:0c:29:ff:ed:7c', dynamic: '192.168.1.101'    |
+| jointime     | Number          | Device join time. UNIX time in secs                                                                   |
+| traffic      | Object          | Accumulated inbound and outbound data since device joined. { in: 70, out: 226 } (unit: kBytes)        |
+| parent       | Number          | Parent device id. This id is 0 if device parent is the netcore                                        |
+| gads         | Number[]        | A list of gadget ids that this device owns                                                            |
+| manufacturer | String          | Manufacturer name                                                                                     |
+| model        | String          | Model name                                                                                            |
+| serial       | String          | Serial number in string                                                                               |
+| version      | Object          | Version tags. { hardware: '', software: 'v1.2.2', firmware: 'v0.0.8' }                                |
+| power        | Object          | Power source. { type: 'battery', voltage: '5V' }. The type can be 'line', 'battery' or 'harvester'    |
+| name         | String          | Device name. This attribute can be modified by user (via UI tools)                                    |
+| description  | String          | Device description. This attribute can be modified by user (via UI tools)                             |
+| location     | String          | Device location. This attribute can be modified by user (via UI tools)                                |
 
+**Device Information Example**  
+
+```js
+{
+    id: 6,
+    netcore: 'mqtt-core',
+    role: 'client',         // depends on protocol
+    enable: true,
+    status: 'online'
+    address: {
+        permanent: '00:0c:29:ff:ed:7c',
+        dynamic: '192.168.1.73'
+    },
+    jointime: 1458008208,
+    traffic: {              // accumulated data (kB) since device joined
+        in: 86,
+        out: 2114
+    },
+    parent: 0,              // parent is the netcore
+    gads: [ 5, 6 ]          // gadgets it owns
+
+    manufacturer: 'freebird',
+    model: 'lwmqn-7688-duo',
+    serial: 'lwmqn-2016-03-15-01',
+    version: {
+        hardware: 'v1.2.0',
+        software: 'v0.8.4',
+        firmware: 'v2.0.0'
+    },
+    power: {
+        type: 'line',
+        voltage: '5V'
+    },
+
+    // name, description, and location are writable and can be modified by users
+    name: 'sample_device',
+    description: 'This is a device example',
+    location: 'balcony'
+}
+```
+
+#### gadInfo object 
+
+| Property     | Type            | Description                                                                                               |
+|--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
+| id           | Number          | Gadget id                                                                                                 |
+| owner        | Number          | Id of which device owns this gadget                                                                       |
+| enable       | Boolean         | Is this gadget enabled?                                                                                   |
+| profile      | String          | The profile of this gadget                                                                                |
+| class        | String          | The [gadget class](#gadClasses) to denote its application, i.e. 'illuminance', 'temperature', 'lightCtrl' |
+| attributes   | Object          | Attributes of this gadget                                                                                 |
+| name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
+| description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
+
+<a name="gadClasses"></a>
+* Gadget classes  
+
+| Class Name               | Description            |  
+|--------------------------|------------------------|  
+| dIn                      | Digital Input          |  
+| dOut                     | Digital Output         |  
+| aIn                      | Analogue Input         |  
+| aOut                     | Analogue Output        |  
+| generic                  | Generic Sensor         |  
+| illuminance              | Illuminance Sensor     |  
+| presence                 | Presence Sensor        |  
+| temperature              | Temperature Sensor     |  
+| humidity                 | Humidity Sensor        |  
+| pwrMea                   | Power Measurement      |  
+| actuation                | Actuation              |  
+| setPoint                 | Set Point              |  
+| loadCtrl                 | Load Control           |  
+| lightCtrl                | Light Control          |  
+| pwrCtrl                  | Power Control          |  
+| accelerometer            | Accelerometer          |  
+| magnetometer             | Magnetometer           |  
+| barometer                | Barometer              |  
+
+**Gadget Information Example**  
+
+```js
+{
+    id: 308,
+    owner: 26,
+    enable: true,
+    profile: 'home_automation', // it will be an empty string '' if no profile given
+    class: 'lightCtrl',
+    attributes: {
+        onOff: 1,
+        dimmer: 80
+    },
+    // name and description writable and can be modified by users
+    name: 'sampleLight',
+    description: 'This is a simple light controller'
+}
+```
+
+#### ncInfo object 
+
+| Property     | Type            | Description                                                                                      |
+|--------------|-----------------|--------------------------------------------------------------------------------------------------|
+| name         | String          | Netcore name                                                                                     |
+| enable       | Boolean         | Is this netcore enabled?                                                                         |
+| protocol     | Object          | Is this gadget enabled?                                                                          |
+| numDevs      | Number          | Gadget id                                                                                        |
+| numGads      | String          | Name of the netcore that holds this gadget                                                       |
+| startTime    | String          | Name of the netcore that holds this gadget                                                       |
+| traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
+
+**Netcore Information Example**  
+
+```js
+{
+    name: 'zigbee-core',
+    enable: true,
+    protocol: {
+        application: 'zcl',
+        transport: '',
+        network: 'zigbee2007pro',
+        link: '',
+        phy: 'ieee802.15.4'
+    },
+    numDevs: 32,
+    numGads: 46,
+    startTime: 1458008208,
+    traffic: {
+        in: 44765,
+        out: 84114
+    }
+}
+```
+
+#### bannedDev object 
+
+| Property     | Type            | Description                                                                                      |
+|--------------|-----------------|--------------------------------------------------------------------------------------------------|
+| netcore      | String          | Name of the netcore that bans the device                                                         |
+| permanent    | String          | Device permanent address                                                                         |
+
+
+**Banned Device Information Example**  
+
+```js
+{
+    netcore: 'zigbee-core',
+    permanent: '0x00124b0001ce4b89'
+}
+```
 
 <a name="IndicationData"></a>
 ### Indication  
 
 | Indication Type | Description                                                                        |
 |-----------------|------------------------------------------------------------------------------------|
-| 'attrChanged'   | Attribue on a gadget or a device has changed.                                      |
-| 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
-| 'netChanged'    | Network parameters of a device has been changed.                                   |
-| 'attrReport'    | A report message of certain attribute on a gadget.                                 |
-| 'devIncoming'   | A device is incoming.                                                              |
-| 'gadIncoming'   | A gadget is incoming.                                                              |
-| 'devLeaving'    | A device is leaving.                                                               |
-| 'gadLeaving'    | A gadget is leaving.                                                               |
-| 'permitJoing'   | Server is now opened or closed for device joining network.                         |
+| attrChanged     | Attribue on a gadget or a device has changed.                                      |
+| statusChanged   | Status of a device has changed. The status can be 'online', 'sleep', and 'online'. |
+| netChanged      | Network parameters of a device has been changed.                                   |
+| attrReport      | A report message of certain attribute on a gadget.                                 |
+| devIncoming     | A device is incoming.                                                              |
+| gadIncoming     | A gadget is incoming.                                                              |
+| devLeaving      | A device is leaving.                                                               |
+| gadLeaving      | A gadget is leaving.                                                               |
+| permitJoing     | Server is now opened or closed for device joining network.                         |
 
 | Subsystem | Indication    | Data Type | Description                                                                        | Example |
 |-----------|---------------|-----------|------------------------------------------------------------------------------------|---------|
