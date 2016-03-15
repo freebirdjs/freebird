@@ -220,30 +220,30 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <a name="devInfoObj"></a>
 * devInfo object  
 
-| Property     | Type            | Description                                                                                           |
-|--------------|-----------------|-------------------------------------------------------------------------------------------------------|
-| id           | Number          | Device id                                                                                             |
-| netcore      | String          | Name of the netcore that holds this device                                                            |
-| role         | String          | Device role. Depends on protocol, i.e., 'peripheral' for BLE devices, 'router' for zigbee devices     |
-| enable       | Boolean         | Is this device enabled?                                                                               |
-| status       | String          | Device status, can be 'online', 'sleep', or 'offline'                                                 |
-| address      | Object          | Device permanent and dynamic addresses. { permanent: '00:0c:29:ff:ed:7c', dynamic: '192.168.1.101'    |
-| jointime     | Number          | Device join time. UNIX time in secs                                                                   |
-| traffic      | Object          | Accumulated inbound and outbound data since device joined. { in: 70, out: 226 } (unit: kBytes)        |
-| parent       | Number          | Parent device id. This id is 0 if device parent is the netcore                                        |
-| gads         | Number[]        | A list of gadget ids that this device owns                                                            |
-| manufacturer | String          | Manufacturer name                                                                                     |
-| model        | String          | Model name                                                                                            |
-| serial       | String          | Serial number in string                                                                               |
-| version      | Object          | Version tags. { hardware: '', software: 'v1.2.2', firmware: 'v0.0.8' }                                |
-| power        | Object          | Power source. { type: 'battery', voltage: '5V' }. The type can be 'line', 'battery' or 'harvester'    |
-| name         | String          | Device name. This attribute can be modified by user (via UI tools)                                    |
-| description  | String          | Device description. This attribute can be modified by user (via UI tools)                             |
-| location     | String          | Device location. This attribute can be modified by user (via UI tools)                                |
+    | Property     | Type            | Description                                                                                           |
+    |--------------|-----------------|-------------------------------------------------------------------------------------------------------|
+    | id           | Number          | Device id                                                                                             |
+    | netcore      | String          | Name of the netcore that holds this device                                                            |
+    | role         | String          | Device role. Depends on protocol, i.e., 'peripheral' for BLE devices, 'router' for zigbee devices     |
+    | enable       | Boolean         | Is this device enabled?                                                                               |
+    | status       | String          | Device status, can be 'online', 'sleep', or 'offline'                                                 |
+    | address      | Object          | Device permanent and dynamic addresses. { permanent: '00:0c:29:ff:ed:7c', dynamic: '192.168.1.101'    |
+    | jointime     | Number          | Device join time. UNIX time in secs                                                                   |
+    | traffic      | Object          | Accumulated inbound and outbound data since device joined. { in: 70, out: 226 } (unit: kBytes)        |
+    | parent       | Number          | Parent device id. This id is 0 if device parent is the netcore                                        |
+    | gads         | Number[]        | A list of gadget ids that this device owns                                                            |
+    | manufacturer | String          | Manufacturer name                                                                                     |
+    | model        | String          | Model name                                                                                            |
+    | serial       | String          | Serial number in string                                                                               |
+    | version      | Object          | Version tags. { hardware: '', software: 'v1.2.2', firmware: 'v0.0.8' }                                |
+    | power        | Object          | Power source. { type: 'battery', voltage: '5V' }. The type can be 'line', 'battery' or 'harvester'    |
+    | name         | String          | Device name. This attribute can be modified by user (via UI tools)                                    |
+    | description  | String          | Device description. This attribute can be modified by user (via UI tools)                             |
+    | location     | String          | Device location. This attribute can be modified by user (via UI tools)                                |
 
-* Device Information Example  
+* Device Information (devInfo) Example  
 
-```js
+    ```js
     {
         id: 6,
         netcore: 'mqtt-core',
@@ -280,23 +280,23 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         description: 'This is a device example',
         location: 'balcony'
     }
-```
+    ```
 
 <a name="gadInfoObj"></a>
 * gadInfo object  
 
-| Property     | Type            | Description                                                                                               |
-|--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
-| id           | Number          | Gadget id                                                                                                 |
-| owner        | Number          | Id of which device owns this gadget                                                                       |
-| enable       | Boolean         | Is this gadget enabled?                                                                                   |
-| profile      | String          | The profile of this gadget                                                                                |
-| class        | String          | The [gadget class](#gadClasses) to denote its application, i.e. 'illuminance', 'temperature', 'lightCtrl' |
-| attributes   | Object          | Attributes of this gadget                                                                                 |
-| name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
-| description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
+    | Property     | Type            | Description                                                                                               |
+    |--------------|-----------------|-----------------------------------------------------------------------------------------------------------|
+    | id           | Number          | Gadget id                                                                                                 |
+    | owner        | Number          | Id of which device owns this gadget                                                                       |
+    | enable       | Boolean         | Is this gadget enabled?                                                                                   |
+    | profile      | String          | The profile of this gadget                                                                                |
+    | class        | String          | The [gadget class](#gadClasses) to denote its application, i.e. 'illuminance', 'temperature', 'lightCtrl' |
+    | attributes   | Object          | Attributes of this gadget                                                                                 |
+    | name         | String          | Gadget name. This attribute can be modified by user (via UI tools)                                        |
+    | description  | String          | Gadget description. This attribute can be modified by user (via UI tools)                                 |
 
-* Gadget Information Example  
+* Gadget Information (gadInfo) Example  
 
     ```js
     {
@@ -317,17 +317,17 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <a name="ncInfoObj"></a>
 * ncInfo object 
 
-| Property     | Type            | Description                                                                                      |
-|--------------|-----------------|--------------------------------------------------------------------------------------------------|
-| name         | String          | Netcore name                                                                                     |
-| enable       | Boolean         | Is this netcore enabled?                                                                         |
-| protocol     | Object          | [TBD] Network protocol of this netcore.                                                          |
-| numDevs      | Number          | Number of devices managed by this netcore                                                        |
-| numGads      | String          | Number of gadgets managed by this netcore                                                        |
-| startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
-| traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
+    | Property     | Type            | Description                                                                                      |
+    |--------------|-----------------|--------------------------------------------------------------------------------------------------|
+    | name         | String          | Netcore name                                                                                     |
+    | enable       | Boolean         | Is this netcore enabled?                                                                         |
+    | protocol     | Object          | [TBD] Network protocol of this netcore.                                                          |
+    | numDevs      | Number          | Number of devices managed by this netcore                                                        |
+    | numGads      | String          | Number of gadgets managed by this netcore                                                        |
+    | startTime    | String          | Start time of this netcore. (UNIX time in secs)                                                  |
+    | traffic      | Object          | Accumulated inbound and outbound data since netcore started. { in: 70, out: 226 } (unit: kBytes) |
 
-* Netcore Information Example  
+* Netcore Information (ncInfo) Example  
 
     ```js
     {
@@ -353,13 +353,13 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <a name="bannedDevObj"></a>
 * bannedDev object  
 
-| Property     | Type            | Description                                                                                      |
-|--------------|-----------------|--------------------------------------------------------------------------------------------------|
-| netcore      | String          | Name of the netcore that bans the device                                                         |
-| permanent    | String          | Device permanent address                                                                         |
+    | Property     | Type            | Description                                                                                      |
+    |--------------|-----------------|--------------------------------------------------------------------------------------------------|
+    | netcore      | String          | Name of the netcore that bans the device                                                         |
+    | permanent    | String          | Device permanent address                                                                         |
 
 
-* Banned Device Information Example  
+* Banned Device Information (bannedDev) Example  
 
     ```js
     {
