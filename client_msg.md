@@ -20,7 +20,7 @@ Freebird Client/Server Message Formats (through websocket)
 <a name="Overiew"></a>  
 ## 1. Overview  
   
-This document describes the APIs of how a freebird web Client can communicate with the freebird Server through [websocket](http://www.websocket.org/). The APIs are based on a _**Request**_, _**Response**_, and _**Indication**_ messages model. The message object (JSON) has a `__intf` field to denote which type a message is. The message type can be 'REQ', 'RSP' or 'IND'.  
+This document describes the APIs of how a freebird web Client can communicate with the freebird Server through [websocket](http://www.websocket.org/). The APIs are based on a _**Request**_, _**Response**_, and _**Indication**_ messages model. The message object (JSON) has a `__intf` field to denote which type a message is. The message type can be 'REQ', 'RSP', or 'IND'.  
   
 The freebird framework has _**net**_, _**dev**_ and _**gad**_ subsystems responsible for network, device and gadget management, respectively. In brief, a network is formed with many devices, and each device may have some gadgets on it. A gadget is a real application in the manchine network.  
   
@@ -53,7 +53,7 @@ The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote th
     | __intf   | String          | 'REQ'                                                                                                                     |
     | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message going to.                   |
     | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                              |
-    | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server. |
+    | id       | Number          | Id of the sender. id is meaningless if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server. |
     | cmd      | String          | Command Identifier.                                                                                                       |
     | arg      | Object          | A value-object that contains command arguments. Please see section [Request Data Model](#RequestData) to learn more about the `arg` data object.|
   
@@ -90,7 +90,7 @@ The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote th
     | __intf   | String          | 'RSP'                                                                                                                              |
     | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this message coming from.                         |
     | seq      | Number          | Sequence number of this REQ/RSP transaction.                                                                                       |
-    | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
+    | id       | Number          | Id of the sender. id is meaningless if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. It is noticed that id = 0 is reserved for the freebird web-client and server.  |
     | cmd      | String          | Command Identifier.                                                                                                                |
     | status   | Number          | Status code.                                                                                                                       |
     | data     | Depends         | Data along with the response. To learn more about the data format corresponding to each command, please see section [Response Data Model](#ResponseData). |
@@ -127,7 +127,7 @@ The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote th
     | __intf   | String          | 'IND'                                                                                                                                       |
     | subsys   | String          | Only 3 types accepted. They are 'net', 'dev', 'gad' to denote which subsystem is this indication coming from.                               |
     | type     | String          | There are few types of indication accepted, such as 'attrChanged'. Please see section [Indication types](#IndTypes) for details.            |
-    | id       | Number          | Id of the sender. id means **nothing** if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
+    | id       | Number          | Id of the sender. id is meaningless if `subsys === 'net'`, **device id** if `subsys === 'dev'`, and **gadget id** if `subsys === 'gad'`. |
     | data     | Depends         | Data along with the indication. Please see section [Indication Data Model](#IndicationData) to learn more about the indicating data format. |
   
 <a name="IndTypes"></a>
@@ -137,13 +137,13 @@ The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote th
     |-----------------|-------------------------------------------------------------------------------------|
     | 'attrChanged'   | Attribue on a gadget or a device has changed.                                       |
     | 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'. |
-    | 'netChanged'    | Network parameters of a device has been changed.                                    |
-    | 'attrReport'    | A report message of certain attribute on a gadget.                                  |
+    | 'netChanged'    | Network parameter(s) of a device has been changed.                                  |
+    | 'attrReport'    | A report message of certain attribute(s) on a gadget.                               |
     | 'devIncoming'   | A device is incoming.                                                               |
     | 'gadIncoming'   | A gadget is incoming.                                                               |
     | 'devLeaving'    | A device is leaving.                                                                |
     | 'gadLeaving'    | A gadget is leaving.                                                                |
-    | 'permitJoining' | Server is now opened or closed for device joining network.                          |
+    | 'permitJoining' | Server is now allowing devices to join the network.                                 |
   
 - **Message Example**:  
   
@@ -166,7 +166,7 @@ The `__intf` field of a message object can be 'REQ', 'RSP' or 'IND' to denote th
 <a name="DataModel"></a>  
 ## 3. Data Model  
   
-The data model presents the `arg` and `data` format in the REQ/RSP/IND messages.  
+The data model presents the `arg` and `data` formats in the REQ/RSP/IND messages.  
   
 <a name="RequestData"></a>
 ### Request  
@@ -181,7 +181,7 @@ The request message is an object with keys { __intf, subsys, seq, id, cmd, arg }
 | net       | getGads      | { ids }                  | Get gadget information by gadget id. **ids** is an array of numbers and each number is a gadget id, i.e., given `{ ids: [ 23, 14, 132 ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | net       | getNetcores  | { ncNames }              | Get netcore information by netcore name. **ncNames** is an array of strings and each string is a netcore name, i.e., given `{ ncNames: [ 'ble-core', 'zigbee-core' ] }`.                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | net       | getBlacklist | { ncName }               | Get blacklist of the banned devices. **ncName** is the name of which netcore you like to get blacklist. **ncName** should be a string. i.e., given `{ ncName: 'ble-core' }`                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| net       | permitJoin   | { ncName, duration }     | Open or close for device to join the network.**ncName** is the name of which netcore you like to open or close for device joining. **duration** is the time in seconds for netcore openning for devices to join the network. Set duration to 0 can immediately close the admission. **ncName** should be a string. **duration** should be a number. For example, given `{ ncName: 'zigbee-core', duration: 60 }` to let the zigbee network open 60 seconds for device joining.                                                                                                         |
+| net       | permitJoin   | { ncName, duration }     | Allow or disallow devices to join the network. **ncName** is the name of which netcore you like to allow for device joining and **ncName** should be a string. **duration** is the time in seconds which should be a number. Set duration to 0 will immediately close the admission. For example, given `{ ncName: 'zigbee-core', duration: 60 }` will allow zigbee devices to join the zigbee network for 60 seconds.                                                                                                         |
 | net       | maintain     | { ncName }               | Maintain the network. .**ncName** is the name of which netcore you like to maintain. **ncName** should be a string. When a netcore starts to maintain its own network, all devices managed by it will be refreshed. For example, given `{ ncName: 'ble-core' }` to let the BLE netcore do its maintenance.                                                                                                                                                                                                                                                                                   |
 | net       | reset        | { ncName }               | Reset the network. **ncName** is the name of which netcore you like to reset. **ncName** should be a string. Reset a network will remove all devices managed by that netcore. Once reset, the banned devices in the blacklist will also be removed.                                                                                                                                                                                                                                                                                                                                          |
 | net       | enable       | { ncName }               | Enable the network. **ncName** is the name of which netcore you like to enable. (The netcore is enabled by default.)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -407,7 +407,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
   
 | Subsystem | Indication    | Data Type | Description                                                                         |
 |-----------|---------------|-----------|-------------------------------------------------------------------------------------|
-| net       | permitJoining | Object    | Server is now opened or closed for device joining network.                          |
+| net       | permitJoining | Object    | Server is now allowing devices to join the network.                                 |
 | dev       | netChanged    | Object    | Network parameters of a device has been changed.                                    |
 | dev       | statusChanged | String    | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'. |
 | dev       | devIncoming   | Object    | A device is incoming. The data is a devInfo object                                  |
@@ -569,7 +569,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 |---------|----------------|------------------------------------------------------------------------------------|
 | 0       | 'success'      | Response is ok                                                                     |
 | 1       | 'fail'         | Operation fails                                                                    |
-| 2       | 'busy'         | Server or remote device is busy. Try latter                                        |
+| 2       | 'busy'         | Server or remote device is busy. Try later                                         |
 | 3       | 'unavail'      | Remote device is unreachable, it may be offline or sleeping                        |
 | 4       | 'badRequest'   | Request parameter in arguments cannot be recognized or given with wrong type       |
 | 5       | 'notFound'     | The allocated device, gadget is not found                                          |
