@@ -18,6 +18,7 @@ Freebird Client/Server Message Formats (through websocket)
     - [Gadget Information (gadInfo) Object](#gadInfoObj)  
     - [Netcore Information (ncInfo) Object](#ncInfoObj)  
     - [Gadget Classes](#gadClasses)  
+    - [ Attribute Report Configuration Object](#reportCfg)  
 
 <br />
   
@@ -139,16 +140,16 @@ The `__intf` field in a message can be 'REQ', 'RSP' or 'IND' to denote the inter
   
     | Indication Type | Description                                                                         |
     |-----------------|-------------------------------------------------------------------------------------|
-    | 'attrChanged'   | Attribue(s) on a gadget or a device has changed                                     |
-    | 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'  |
+    | 'permitJoining' | Server is now allowing devices to join the network.                                 |
     | 'netChanged'    | Network parameter(s) of a device has changed                                        |
-    | 'attrReport'    | A report message of certain attribute(s) on a gadget                                |
+    | 'statusChanged' | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'  |
     | 'devIncoming'   | A device is incoming                                                                |
     | 'devLeaving'    | A device is leaving                                                                 |
     | 'gadIncoming'   | A gadget is incoming                                                                |
     | 'gadLeaving'    | A gadget is leaving                                                                 |
-    | 'permitJoining' | Server is now allowing devices to join the network.                                 |
-  
+    | 'attrReport'    | A report message of certain attribute(s) on a gadget                                |
+    | 'attrChanged'   | Attribue(s) on a gadget or a device has changed                                     |
+
 - **Message Example**:  
   
     ```js
@@ -200,7 +201,7 @@ The request message is an object with keys { __intf, subsys, seq, id, cmd, args 
 | gad       | 'read'         | { id, attrName }         | Read an attribute on a gadget. **id** is the id of which gadget you like to read from. **attrName** is the attribute you like to read. For example, given `{ id: 2316, attrName: 'sensorValue' }` to read the sensed value attribute from a temperature sensor (the sensor is a gadget with id = 2316).                                                                                                                                                                                                                                                                                       |
 | gad       | 'write'        | { id, attrName, value }  | Write a value to an attribute on a gadget. **id** is the id of which gadget you like to write a value to. **attrName** is the attribute to be written. For example, given `{ id: 1314, attrName: 'onOff', value: 1 }` to turn on a light bulb (the light bulb is a gadget with id = 1314).                                                                                                                                                                                                                                                                                                     |
 | gad       | 'exec'         | { id, attrName[, params] } | Invoke a remote procedure on a gadget. **id** is the id of which gadget you like to perform its particular procedure. **attrName** is the attribute name of an executable procedure. **params** is an array of parameters given in order to meet the procedure signature. The signature depends on how a developer declare his(/her) own procedure. For example, given `{ id: 9, attrName: 'blink', value: [ 10, 500 ] }` to blink a LED on a gadget 10 times with 500ms interval.                                                                                                             |
-| gad       | 'setReportCfg' | { id, attrName, cfg }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| gad       | 'setReportCfg' | { id, attrName, [rptCfg](#reportCfg) }    | Set the condition for an attribute reporting from a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | gad       | 'getReportCfg' | { id, attrName }         | Get the report settings of an attribute on a gadget.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
   
 ********************************************
@@ -217,7 +218,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | net       | 'getDevs'      | Object[]           | Array of device information objects                  | [ [devInfo](#devInfoObj), ...  ]    |
 | net       | 'getGads'      | Object[]           | Array of gadget information objects                  | [ [gadInfo](#gadInfoObj) , ... ]    |
 | net       | 'getNetcores'  | Object[]           | Array of netcore information objects                 | [ [ncInfo](#ncInfoObj), ... ]       |
-| net       | 'getBlacklist' | Object[]           | Array of banned device permanent address             | [ '0x00124b0001ce4b89', ... ] |
+| net       | 'getBlacklist' | Object[]           | Array of banned device permanent address             | [ '0x00124b0001ce4b89', ... ]       |
 | net       | 'permitJoin'   | -                  | Response contains no data                            | null                                |
 | net       | 'maintain'     | -                  | Response contains no data                            | null                                |
 | net       | 'reset'        | -                  | Response contains no data                            | null                                |
@@ -234,7 +235,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 | gad       | 'write'        | Depends            | The written value. Can be anything                   | false                               |
 | gad       | 'exec'         | Depends            | The data returned by the procedure. Can be anything  | 'completed'                         |
 | gad       | 'setReportCfg' | Null               | Response contains no data                            | null                                |
-| gad       | 'getReportCfg' | Object             | Report settings object                               | rptCfg                              |
+| gad       | 'getReportCfg' | Object             | Report settings object                               | [rptCfg](#reportCfg)                |
   
 
 ********************************************
@@ -244,17 +245,19 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
 <a name="IndicationData"></a>
 ### Indication  
   
-| Subsystem | Indication    | Data Type | Description                                                                         |
-|-----------|---------------|-----------|-------------------------------------------------------------------------------------|
-| net       | permitJoining | Object    | Server is now allowing devices to join the network.                                 |
-| dev       | netChanged    | Object    | Network parameters of a device has been changed.                                    |
-| dev       | statusChanged | String    | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'. |
-| dev       | devIncoming   | Object    | A device is incoming. The data is a devInfo object                                  |
-| dev       | devLeaving    | Number    | A device is leaving.                                                                |
-| dev/gad   | attrChanged   | Object    | Attribute(s) on a gadget or a device has changed.                                   |
-| gad       | gadIncoming   | Object    | A gadget is incoming. The data is a gadInfo object                                  |
-| gad       | gadLeaving    | Number    | A gadget is leaving.                                                                |
-| gad       | attrReport    | Depends   | Report message of a certain attribute on a gadget.                                  |
+The indication message is an object with keys { __intf, subsys, type, id, data }. `type` shows the type of indication. The `data` field contains the indication data.  
+
+| Subsystem | Indication Type | Data Type | Description                                                                         |
+|-----------|-----------------|-----------|-------------------------------------------------------------------------------------|
+| net       | 'permitJoining' | Object    | Server is now allowing devices to join the network                                  |
+| dev       | 'netChanged'    | Object    | Network parameter(s) of a device has changed                                        |
+| dev       | 'statusChanged' | String    | Status of a device has changed. The status can be 'online', 'sleep', and 'offline'  |
+| dev       | 'devIncoming'   | Object    | A device is incoming. The indication data is a devInfo object                       |
+| dev       | 'devLeaving'    | Number    | A device is leaving. The indication data is the device id                           |
+| gad       | 'gadIncoming'   | Object    | A gadget is incoming. The indication data is a gadInfo object                       |
+| gad       | 'gadLeaving'    | Number    | A gadget is leaving. The indication data is the gadget id                           |
+| gad       | 'attrReport'    | Depends   | Report message of a certain attribute on a gadget                                   |
+| dev/gad   | 'attrChanged'   | Object    | Attribute(s) on a gadget or a device has changed                                    |
   
 * Indication Example: 'permitJoining'  
   
@@ -263,7 +266,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     // indMsg.data is an object
     {
         netcore: 'zigbee-core',
-        permission: true
+        leftTime: 60            // netcore does not allow for devices to join the network if leftTime is 0
     }
     ```
   
@@ -276,7 +279,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
         address: {
             dynamic: '192.168.1.32'
         },
-        status: 'online'
+        status: 'online'    // status changed, an 'statusChanged' indication will also be fired  
     }
     ```
   
@@ -296,14 +299,14 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     {
         id: 18,
         netcore: 'mqtt-core',
-        role: 'client',         // depends on protocol
+        role: 'client',         // depends on protocol. This rol string is defined by the netcore developer
         enable: true,
         status: 'online'
         address: {
             permanent: '00:0c:29:ff:ed:7c',
             dynamic: '192.168.1.24'
         },
-        jointime: 1458008311,
+        joinTime: 1458008311,
         traffic: {
             in: 12,
             out: 6
@@ -436,7 +439,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
     | enable       | Boolean         | Is this device enabled?                                                                               |
     | status       | String          | Device status, can be 'online', 'sleep', or 'offline'                                                 |
     | address      | Object          | Device permanent and dynamic addresses. { permanent: '00:0c:29:ff:ed:7c', dynamic: '192.168.1.101'    |
-    | jointime     | Number          | Device join time. UNIX time in secs                                                                   |
+    | joinTime     | Number          | Device join time. UNIX time in secs                                                                   |
     | traffic      | Object          | Accumulated inbound and outbound data since device joined. { in: 70, out: 226 } (unit: kBytes)        |
     | parent       | Number          | Parent device id. This id is 0 if device parent is the netcore                                        |
     | gads         | Number[]        | A list of gadget ids that this device owns                                                            |
@@ -462,7 +465,7 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
             permanent: '00:0c:29:ff:ed:7c',
             dynamic: '192.168.1.73'
         },
-        jointime: 1458008208,
+        joinTime: 1458008208,
         traffic: {              // accumulated data (kB) since device joined
             in: 86,
             out: 2114
@@ -566,24 +569,104 @@ The response message is an object with keys { __intf, subsys, seq, id, cmd, stat
   
 <a name="gadClasses"></a>
 ### Gadget Classes
+
+Freebird framework uses the class property on a gadget to define its application. The classes are Smart Object Identfiers defined by [IPSO SmartObject Guideline(Smart Objects Starter Pack1.0)](http://www.ipso-alliance.org/smart-object-guidelines/). Here is the table of Object ids from [lwm2m-id](https://github.com/simenkid/lwm2m-id#5-table-of-identifiers) library.
+
+| Class Name                 | Description            |
+|----------------------------|------------------------|
+| 'dIn'                      | Digital Input          |
+| 'dOut'                     | Digital Output         |
+| 'aIn'                      | Analogue Input         |
+| 'aOut'                     | Analogue Output        |
+| 'generic'                  | Generic Sensor         |
+| 'illuminance'              | Illuminance Sensor     |
+| 'presence'                 | Presence Sensor        |
+| 'temperature'              | Temperature Sensor     |
+| 'humidity'                 | Humidity Sensor        |
+| 'pwrMea'                   | Power Measurement      |
+| 'actuation'                | Actuation              |
+| 'setPoint'                 | Set Point              |
+| 'loadCtrl'                 | Load Control           |
+| 'lightCtrl'                | Light Control          |
+| 'pwrCtrl'                  | Power Control          |
+| 'accelerometer'            | Accelerometer          |
+| 'magnetometer'             | Magnetometer           |
+| 'barometer'                | Barometer              |
+
+<a name="reportCfg"></a>
+### Attribute Report Configuration (rptCfg) Object
   
-| Class Name               | Description            |
-|--------------------------|------------------------|
-| dIn                      | Digital Input          |
-| dOut                     | Digital Output         |
-| aIn                      | Analogue Input         |
-| aOut                     | Analogue Output        |
-| generic                  | Generic Sensor         |
-| illuminance              | Illuminance Sensor     |
-| presence                 | Presence Sensor        |
-| temperature              | Temperature Sensor     |
-| humidity                 | Humidity Sensor        |
-| pwrMea                   | Power Measurement      |
-| actuation                | Actuation              |
-| setPoint                 | Set Point              |
-| loadCtrl                 | Load Control           |
-| lightCtrl                | Light Control          |
-| pwrCtrl                  | Power Control          |
-| accelerometer            | Accelerometer          |
-| magnetometer             | Magnetometer           |
-| barometer                | Barometer              |
+* Properties  
+  
+    | Property     | Type         | Mandatory | Description                                                                                      |
+    |--------------|--------------|-----------|--------------------------------------------------------------------------------------------------|
+    | pmin         | Number       |  optional | Minimum Period. Minimum time in seconds the gadget should wait from the time when sending the last notification to the time when sending a new notification.                                                                                     |
+    | pmax         | Number       |  optional | Maximum Period. Maximum time in seconds the gadget should wait from the time when sending the last notification to the time sending the next notification (regardless if the value has changed).                                                                         |
+    | gt           | Number       |  optional | Greater Than. The gadget should notify its attribute when the value is greater than this setting. Only valid for the attribute typed as a number.                                                          |
+    | lt           | Number       |  optional | Less Than. The gadget should notify its attribute when the value is smaller than this setting. Only valid for the attribute typed as a number.                                                        |
+    | step         | Number       |  optional | Step. The gadget should notify its value when the change of the attribute value, since the last report happened, is greater than this setting.                                                        |
+    | enable       | Boolean      | required  | It is set to true for the gadget to start reporting an attribute. Set to false to stop reporting. |
+  
+* Example  
+  
+    ```js
+    // start reporting with the following settings
+    {
+        pmin: 10,
+        pmax: 60,
+        lt: 120
+        gt: 260
+        enable: true
+    }
+
+    // the time chart of reporting: (O: report triggered, xxxxx: pmin, -----: pmax)
+    //       O             O     O             O     O             O     O             O
+    // |xxxxx|-------------|xxxxx|-------------|xxxxx|-------------|xxxxx|-------------|
+    // 0s   10s           70s   80s           140s 150s           210s  220s          280s
+    //  <10s> <    60s    >
+
+    // note:
+    //     1. only in |---------| duration, any change meets lt or gt condition will be reported
+    //     2. In this example, the attribute will be reported when its value is greater than 260 or is less than 120
+    ```
+
+  
+    ```js
+    // start periodical reporting
+    {
+        pmin: 0,
+        pmax: 30,
+        enable: true
+    }
+
+    // the time chart of reporting: (O: report triggered, xxxxx: pmin, -----: pmax)
+    // O             O             O             O             O             0
+    // |-------------|-------------|-------------|-------------|-------------|
+    // 0s           30s           60s           90s          120s          150s
+
+    // note:
+    //     1. In this example, the attribute will be reported every 30 seconds
+    ```
+  
+    ```js
+    // set but not start reporting
+    {
+        gt: 50
+        enable: false
+    }
+    ```
+  
+    ```js
+    // start reporting with the current settings
+    {
+        enable: true
+    }
+    ```
+  
+    ```js
+    // stop reporting
+    {
+        enable: false
+    }
+    ```
+  
