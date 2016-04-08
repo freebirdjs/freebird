@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
-    "lodash": "^4.2.0"
+    "lodash": "^4.8.2",
+    "nedb": "^1.8.0",
+    "q": "^1.4.1"
   }
 }
