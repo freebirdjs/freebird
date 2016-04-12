@@ -156,18 +156,7 @@ describe('Find By Id Check', function () {
         });
     });
 });
-// nc1 = {
-//         id: 1,
-//         name: 'nc1',
-//         enabled: false,
-//         protocol: 'zigbee',
-//         startTime: 0,
-//         defaultJoinTime: 180,
-//         traffic: {
-//             in: { hits: 0, bytes: 0 },
-//             out: { hits: 0, bytes: 0 }
-//         }
-//     },
+
 describe('Modify Check', function () {
     it('modify id', function (done) {
         fbdb.modify(1, 'id', 5).fail(function (err) {
@@ -186,17 +175,122 @@ describe('Modify Check', function () {
             if (_.isEqual(diff, { protocol: 'zigbeee' })) done();
         });
     });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'startTime', 6500).then(function (diff) {
+            if (_.isEqual(diff, { startTime: 6500 })) done();
+        });
+    });
     
+    it('modify()', function (done) {
+        fbdb.modify(1, 'traffic.in', { hits: 1, bytes: 0 }).then(function (diff) {
+            if (_.isEqual(diff, { hits: 1 })) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'traffic.in', { hits: 1, bytes: 50 }).then(function (diff) {
+            if (_.isEqual(diff, { bytes: 50 })) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'traffic.in', { hits: 1 }).then(function (diff) {
+            if (_.isEqual(diff, { })) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'traffic.in', { hitss: 1 }).fail(function (err) {
+            if (err) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'traffic', { hits: 1 }).fail(function (err) {
+            if (err) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'Xtraffic', { hits: 1 }).fail(function (err) {
+            if (err) done();
+        });
+    });
 });
 
 describe('Replace Check', function () {
+    it('replace id', function (done) {
+        fbdb.replace(1, 'id', 5).fail(function (err) {
+            if (err) done();
+        });
+    });
 
+    it('replace()', function (done) {
+        fbdb.replace(1, 'startTime', 20000).then(function () {
+            return fbdb.findById(1);
+        }).then(function (doc) {
+            if (doc.startTime === 20000) done();
+        });
+    });
+
+    it('replace()', function (done) {
+        fbdb.replace(1, 'enabled', true).then(function () {
+            return fbdb.findById(1);
+        }).then(function (doc) {
+            if (doc.enabled === true) done();
+        });
+    });
+
+    it('replace()', function (done) {
+        fbdb.replace(1, 'traffic.in.hits', 10).then(function () {
+            return fbdb.findById(1);
+        }).then(function (doc) {
+            if (doc.traffic.in.hits === 10) done();
+        });
+    });
+
+    it('replace()', function (done) {
+        fbdb.replace(1, 'traffic.out', { hits: 5, bytes: 85 }).then(function () {
+            return fbdb.findById(1);
+        }).then(function (doc) {
+            if (_.isEqual(doc.traffic.out, { hits: 5, bytes: 85 })) done();
+        });
+    });
+
+    it('replace - find nothing', function (done) {
+        fbdb.replace(5, 'traffic.in.hits', 10).fail(function (err) {
+            if (err) done();
+        });
+    });
+
+    it('replace - find nothing', function (done) {
+        fbdb.replace(1, 'traffic.in.hitss', 10).fail(function (err) {
+            if (err) done();
+        });
+    });
+
+    it('replace - find nothing', function (done) {
+        fbdb.replace(1, 'trafficc.in.hitss', 10).fail(function (err) {
+            if (err) done();
+        });
+    });
 });
 
 describe('Find All Check', function () {
-
+    it('findAll()', function (done) {
+        fbdb.findAll().then(function (docs) {
+            if (_.size(docs) === 4) done();
+        });
+    });
 });
 
 describe('Remove By Id Check', function () {
-
+    it('remove()', function (done) {
+        fbdb.removeById(1).then(function () {
+            return fbdb.findById(1);
+        }).then(function (doc) {
+            if (_.isNull(doc)) done();
+        });
+    });
 });
