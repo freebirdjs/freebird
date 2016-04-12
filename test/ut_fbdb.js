@@ -1,41 +1,192 @@
 var _ = require('lodash'),
-    should = require('should-promised'),
+    should = require('should'),
     fs = require('fs'),
     DataStore = require('nedb'),
     Fbdb = require('../lib/fbdb');
 
 var fbdb,
-	dbPath = '../lib/cc254x/database/fb.db';
+	dbPath = '../lib/database/fb.db';
 
 fs.exists(dbPath, function (isThere) {
     if (isThere) { fs.unlink(dbPath); }
 });
 
-var 
+var nc1 = {
+        id: 1,
+        name: 'nc1',
+        enabled: false,
+        protocol: 'zigbee',
+        startTime: 0,
+        defaultJoinTime: 180,
+        traffic: {
+            in: { hits: 0, bytes: 0 },
+            out: { hits: 0, bytes: 0 }
+        }
+    },
+    nc2 = {
+        id: 2,
+        name: 'nc2',
+        enabled: true,
+        protocol: 'bluetooth',
+        startTime: 19200,
+        defaultJoinTime: 30,
+        traffic: {
+            in: { hits: 0, bytes: 0 },
+            out: { hits: 3, bytes: 20 }
+        }
+    },
+    nc3 = {
+        id: 3,
+        name: 'nc3',
+        enabled: true,
+        protocol: 'mqtt',
+        startTime: 25000,
+        defaultJoinTime: 60,
+        traffic: {
+            in: { hits: 5, bytes: 60 },
+            out: { hits: 10, bytes: 300 }
+        }
+    },
+    nc4 = {
+        id: 4,
+        name: 'nc4',
+        enabled: false,
+        protocol: 'coap',
+        startTime: 600,
+        defaultJoinTime: 90,
+        traffic: {
+            in: { hits: 0, bytes: 0 },
+            out: { hits: 0, bytes: 0 }
+        }
+    }
 
-describe('Constructor Check', function (done) {
+describe('Constructor Check', function () {
 	it('new Fbdb()', function () {
-		(function () {(new Fbdb({})).should.throw(); })
-		(function () {(new Fbdb([])).should.throw(); })
-		(function () {(new Fbdb(true)).should.throw(); })
-		(function () {(new Fbdb(123)).should.throw(); })
-		(function () {(new Fbdb(undefined)).should.throw(); })
-
 		fbdb = new Fbdb('/home/hedy/freebird/freebird/lib/database/fb.db');
-		if (fbdb._db instanceof DataStore) done();
+        (fbdb._db).should.instanceof(DataStore);
 	});
 });
 
 describe('Insert Check', function () {
+    it('insert nc1', function (done) {
+        fbdb.insert(nc1).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc1, doc)) done();
+        });
+    });
 
+    it('insert nc2', function (done) {
+        fbdb.insert(nc2).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc2, doc)) done();
+        });
+    });
+
+    it('insert nc3', function (done) {
+        fbdb.insert(nc3).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc3, doc)) done();
+        });
+    });
+
+    it('insert nc1 again', function (done) {
+        nc1.defaultJoinTime = 60;
+        fbdb.insert(nc1).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(doc, nc1)) done();
+        });
+    });
+
+    it('insert nc2 again', function (done) {
+        nc2.defaultJoinTime = 90;
+        fbdb.insert(nc2).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(doc, nc2)) done();
+        });
+    });
+
+    it('insert nc3 again', function (done) {
+        nc3.defaultJoinTime = 30;
+        fbdb.insert(nc3).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(doc, nc3)) done();
+        });
+    });
 });
 
 describe('Find By Id Check', function () {
+    it('find nc1', function (done) {
+        fbdb.findById(nc1.id).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc1, doc)) done();
+        });
+    });
 
+    it('find nc2', function (done) {
+        fbdb.findById(nc2.id).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc2, doc)) done();
+        });
+    });
+
+    it('find nc3', function (done) {
+        fbdb.findById(nc3.id).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc3, doc)) done();
+        });
+    });
+
+    it('find nc4', function (done) {
+        fbdb.findById(nc4.id, function (err, doc) {
+            if (!doc) done();
+        });
+    });
+
+    it('insert nc4', function (done) {
+        fbdb.insert(nc4).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(doc, nc4)) done();
+        });
+    });
+
+    it('find nc4', function (done) {
+        fbdb.findById(nc4.id).then(function (doc) {
+            delete doc._id;
+            if (_.isEqual(nc4, doc)) done();
+        });
+    });
 });
-
+// nc1 = {
+//         id: 1,
+//         name: 'nc1',
+//         enabled: false,
+//         protocol: 'zigbee',
+//         startTime: 0,
+//         defaultJoinTime: 180,
+//         traffic: {
+//             in: { hits: 0, bytes: 0 },
+//             out: { hits: 0, bytes: 0 }
+//         }
+//     },
 describe('Modify Check', function () {
+    it('modify id', function (done) {
+        fbdb.modify(1, 'id', 5).fail(function (err) {
+            if (err) done();
+        });
+    });
 
+    it('modify id', function (done) {
+        fbdb.modify(1, 'id', { x: 10 }).fail(function (err) {
+            if (err) done();
+        });
+    });
+
+    it('modify()', function (done) {
+        fbdb.modify(1, 'protocol', 'zigbeee').then(function (diff) {
+            if (_.isEqual(diff, { protocol: 'zigbeee' })) done();
+        });
+    });
+    
 });
 
 describe('Replace Check', function () {
@@ -49,119 +200,3 @@ describe('Find All Check', function () {
 describe('Remove By Id Check', function () {
 
 });
-
-
-    this._netcore = netcore;
-    this._raw = rawDev;         // optional
-    this._id = null;            // register@fb
-    this._gads = [];            // when register gad @fb
-
-    this._net = {
-        enabled: false,         // {RPT}
-        joinTime: null,         // POSIX Time, seconds since 1/1/1970, assigned by netcore at register
-        timestamp: null,        // POSIX Time, seconds, fb should call dev._markActivity() to update it
-        traffic: {              // {RRT} only report@reset
-            in: { hits: 0, bytes: 0 },
-            out: { hits: 0, bytes: 0 }
-        },
-        role: '',               // {RPT}
-        parent: '0',            // {RPT} permanent address, default is '0' for netcore
-        maySleep: false,        // {RPT} developer
-        sleepPeriod: 30,        // {RPT} developer, seconds
-        status: 'unknown',      // {RPT} online, offline, sleep, unknown
-        address: {              // {RPT}
-            permanent: '',
-            dynamic: ''
-        }
-    };
-    // getProp, setProp
-    this._props = {
-        name: undefined,               // client user local set
-        description: undefined,        // client user local set
-        location: undefined            // client user local set
-    };
-    // LOCAL: getAttr, setAttr; REMOTE: read, write
-    this._attrs = {
-        manufacturer: undefined,
-        model: undefined,
-        serial: undefined,
-        version: {
-            hw: undefined,
-            sw: undefined,
-            fw: undefined
-        },
-        power: {
-            type: undefined,
-            voltage: undefined
-        }
-    };
-
-    this.extra = null;
-}
-
-
- var __blacklist = [];
-
-    this._joinTimer = null; // set @ permit join
-    this._joinTicks = 0;    // set @ permit join
-
-//    this._liveKeeper = null;  // @freebird, maybe plugin?
-
-    this._controller = cfg.controller;              // required
-    this._ticks = cfg.ticks;                        // sleep maintainer
-    this._defaultJoinTime = cfg.defaultJoinTime;    // optional
-
-    this._fb = null;
-
-    this._net = {
-        name: name,
-        enabled: false,
-        protocol: cfg.protocol,     // required
-        startTime: 0,
-        traffic: {
-            in: {
-                hits: 0,
-                bytes: 0
-            },
-            out: {
-                hits: 0,
-                bytes: 0
-            }
-        }
-    };
-
-    this.extra = null;
-
-    /* Developer overrides                                                                   */
-    this.cookRawDev = null;         // function(dev, raw, callback) { callback(err, dev); }
-    this.cookRawGad = null;         // function(gad, meta, callback) { callback(err, gad); }
-    this.unifyRawDevAttrs = null;   // function(attrs) { return attrsObj; }
-    this.unifyRawGadAttrs = null;   // function(attrs) { return attrsObj; }
-    /* ------------------------------------------------------------------------------------- */
-
-    this._drivers = {
-        net: {
-            start: null,        // function(callback) {}
-            stop: null,         // function(callback) {}
-            reset: null,        // function(callback) {}
-            permitJoin: null,   // function(duration, callback) {}
-            // maintain: null,     // function([permAddr][, callback]) {}
-            remove: null,       // function(permAddr, callback) {}
-            ban: null,          // function(permAddr, callback) {}
-            unban: null,        // function(permAddr, callback) {}
-            ping: null          // function(permAddr, callback) {}
-        },
-        dev: {
-            read: null,         // function(permAddr, attr, callback) {}
-            write: null,        // function(permAddr, attr, val, callback) {}
-            identify: null,     // function(permAddr, callback) {}
-        },
-        gad: {
-            read: null,         // function(permAddr, auxId, attr, callback) {}
-            write: null,        // function(permAddr, auxId, attr, val, callback) {}
-            exec: null,         // function(permAddr, auxId, attr, args, callback) {}
-            setReportCfg: null, // function(permAddr, auxId, cfg, callback) {}
-            getReportCfg: null, // function(permAddr, auxId, callback) {}
-            report: null
-        }
-    };

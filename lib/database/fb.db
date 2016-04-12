@@ -1,0 +1,9 @@
+{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbee","startTime":0,"defaultJoinTime":180,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"j9us53nqDr3TvxVh"}
+{"id":2,"name":"nc2","enabled":true,"protocol":"bluetooth","startTime":19200,"defaultJoinTime":30,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":3,"bytes":20}},"_id":"1gibNVX7qWAUFAhf"}
+{"id":3,"name":"nc3","enabled":true,"protocol":"mqtt","startTime":25000,"defaultJoinTime":60,"traffic":{"in":{"hits":5,"bytes":60},"out":{"hits":10,"bytes":300}},"_id":"zxXh4dwpHUddDeBC"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbee","startTime":0,"defaultJoinTime":60,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"j9us53nqDr3TvxVh"}
+{"id":2,"name":"nc2","enabled":true,"protocol":"bluetooth","startTime":19200,"defaultJoinTime":90,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":3,"bytes":20}},"_id":"1gibNVX7qWAUFAhf"}
+{"id":3,"name":"nc3","enabled":true,"protocol":"mqtt","startTime":25000,"defaultJoinTime":30,"traffic":{"in":{"hits":5,"bytes":60},"out":{"hits":10,"bytes":300}},"_id":"zxXh4dwpHUddDeBC"}
+{"id":4,"name":"nc4","enabled":false,"protocol":"coap","startTime":600,"defaultJoinTime":90,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"L49CTs5EHIkG3Kat"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":0,"defaultJoinTime":60,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"j9us53nqDr3TvxVh"}
