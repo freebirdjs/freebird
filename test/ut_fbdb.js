@@ -5,7 +5,7 @@ var _ = require('lodash'),
     Fbdb = require('../lib/fbdb');
 
 var fbdb,
-	dbPath = '../lib/database/fb.db';
+    dbPath = '../lib/database/fb.db';
 
 fs.exists(dbPath, function (isThere) {
     if (isThere) { fs.unlink(dbPath); }
@@ -61,10 +61,10 @@ var nc1 = {
     }
 
 describe('Constructor Check', function () {
-	it('new Fbdb()', function () {
-		fbdb = new Fbdb('/home/hedy/freebird/freebird/lib/database/fb.db');
+    it('new Fbdb()', function () {
+        fbdb = new Fbdb('/home/hedy/freebird/freebird/lib/database/fb.db');
         (fbdb._db).should.instanceof(DataStore);
-	});
+    });
 });
 
 describe('Insert Check', function () {
