@@ -1,14 +1,18 @@
 {"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
-{"id":1,"dev":{"id":5,"permAddr":"0x78c5e570737f"},"auxId":10780,"panel":{"enabled":false,"profile":"","class":"TempMeas"},"props":{"name":"gad1","description":"for test"},"attrs":{"temperature":26},"_id":"jUCDUT3zAtkTdKSf"}
-{"id":2,"dev":{"id":8,"permAddr":"0x00124b00043126d1"},"auxId":3,"panel":{"enabled":true,"profile":"HomeAutomation","class":"light"},"props":{"name":"gad2","description":"for test"},"attrs":{"onoff":false},"_id":"o6ckM4bEXgZQLm1k"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{"name":"gad3","description":"for test"},"attrs":{"power":60},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":1,"dev":{"id":5,"permAddr":"0x78c5e570737f"},"auxId":500,"panel":{"enabled":false,"profile":"","class":"TempMeas"},"props":{"name":"gad1","description":"for test"},"attrs":{"temperature":26},"_id":"jUCDUT3zAtkTdKSf"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{"name":"gad3","description":"for test"},"attrs":{"power":500},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{"name":"gad33","description":"for test"},"attrs":{"power":500},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{"name":"gad33","description":"hello"},"attrs":{"power":500},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{},"attrs":{"power":500},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{},"attrs":{"power":10},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"id":1,"dev":{"id":5,"permAddr":"0x78c5e570737f"},"auxId":10780,"panel":{"enabled":false,"profile":"","class":"TempMeas"},"props":{"name":"gad1","description":"for test"},"attrs":{"temperature":26},"_id":"jUCDUT3zAtkTdKSf"}
-{"id":2,"dev":{"id":8,"permAddr":"0x00124b00043126d1"},"auxId":3,"panel":{"enabled":true,"profile":"HomeAutomation","class":"light"},"props":{"name":"gad2","description":"for test"},"attrs":{"onoff":false},"_id":"o6ckM4bEXgZQLm1k"}
-{"id":3,"dev":{"id":13,"permAddr":"0x12345678"},"auxId":3328,"panel":{"enabled":true,"profile":"CommTempSensors","class":"power"},"props":{"name":"gad3","description":"for test"},"attrs":{"power":60},"_id":"Tn1ZT24Kp1uQ4RyF"}
-{"$$deleted":true,"_id":"jUCDUT3zAtkTdKSf"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbee","startTime":0,"defaultJoinTime":180,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":2,"name":"nc2","enabled":true,"protocol":"bluetooth","startTime":19200,"defaultJoinTime":30,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":3,"bytes":20}},"_id":"s5zPUriIAkmB0BA7"}
+{"id":3,"name":"nc3","enabled":true,"protocol":"mqtt","startTime":25000,"defaultJoinTime":60,"traffic":{"in":{"hits":5,"bytes":60},"out":{"hits":10,"bytes":300}},"_id":"SIvKbCg3AZ62RRsD"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbee","startTime":0,"defaultJoinTime":60,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":2,"name":"nc2","enabled":true,"protocol":"bluetooth","startTime":19200,"defaultJoinTime":90,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":3,"bytes":20}},"_id":"s5zPUriIAkmB0BA7"}
+{"id":3,"name":"nc3","enabled":true,"protocol":"mqtt","startTime":25000,"defaultJoinTime":30,"traffic":{"in":{"hits":5,"bytes":60},"out":{"hits":10,"bytes":300}},"_id":"SIvKbCg3AZ62RRsD"}
+{"id":4,"name":"nc4","enabled":false,"protocol":"coap","startTime":600,"defaultJoinTime":90,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"5XxPWxda0ZQn5Nme"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":0,"defaultJoinTime":60,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":6500,"defaultJoinTime":60,"traffic":{"in":{"hits":0,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":6500,"defaultJoinTime":60,"traffic":{"in":{"hits":1,"bytes":0},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":6500,"defaultJoinTime":60,"traffic":{"in":{"hits":1,"bytes":50},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":6500,"defaultJoinTime":60,"traffic":{"in":{"hits":1,"bytes":50},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":false,"protocol":"zigbeee","startTime":20000,"defaultJoinTime":60,"traffic":{"in":{"hits":1,"bytes":50},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":true,"protocol":"zigbeee","startTime":20000,"defaultJoinTime":60,"traffic":{"in":{"hits":1,"bytes":50},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":true,"protocol":"zigbeee","startTime":20000,"defaultJoinTime":60,"traffic":{"in":{"hits":10,"bytes":50},"out":{"hits":0,"bytes":0}},"_id":"xCgQHTlw5M90gPSv"}
+{"id":1,"name":"nc1","enabled":true,"protocol":"zigbeee","startTime":20000,"defaultJoinTime":60,"traffic":{"in":{"hits":10,"bytes":50},"out":{"hits":5,"bytes":85}},"_id":"xCgQHTlw5M90gPSv"}
+{"$$deleted":true,"_id":"xCgQHTlw5M90gPSv"}

@@ -2,9 +2,9 @@ var _ = require('lodash'),
     should = require('should'),
     fs = require('fs'),
     DataStore = require('nedb'),
-    Fbdb = require('../lib/fbdb');
+    Db = require('../lib/components/db');
 
-var fbdb,
+var db,
     dbPath = '../lib/database/fb.db';
 
 fs.exists(dbPath, function (isThere) {
@@ -58,32 +58,32 @@ var nc1 = {
             in: { hits: 0, bytes: 0 },
             out: { hits: 0, bytes: 0 }
         }
-    }
+    };
 
 describe('Constructor Check', function () {
-    it('new Fbdb()', function () {
-        fbdb = new Fbdb('/home/hedy/freebird/freebird/lib/database/fb.db');
-        (fbdb._db).should.instanceof(DataStore);
+    it('new Db()', function () {
+        db = new Db('/home/hedy/freebird/freebird/lib/database/fb.db');
+        (db._db).should.instanceof(DataStore);
     });
 });
 
 describe('Insert Check', function () {
     it('insert nc1', function (done) {
-        fbdb.insert(nc1).then(function (doc) {
+        db.insert(nc1, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc1, doc)) done();
         });
     });
 
     it('insert nc2', function (done) {
-        fbdb.insert(nc2).then(function (doc) {
+        db.insert(nc2, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc2, doc)) done();
         });
     });
 
     it('insert nc3', function (done) {
-        fbdb.insert(nc3).then(function (doc) {
+        db.insert(nc3, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc3, doc)) done();
         });
@@ -91,7 +91,7 @@ describe('Insert Check', function () {
 
     it('insert nc1 again', function (done) {
         nc1.defaultJoinTime = 60;
-        fbdb.insert(nc1).then(function (doc) {
+        db.insert(nc1, function (err, doc) {
             delete doc._id;
             if (_.isEqual(doc, nc1)) done();
         });
@@ -99,7 +99,7 @@ describe('Insert Check', function () {
 
     it('insert nc2 again', function (done) {
         nc2.defaultJoinTime = 90;
-        fbdb.insert(nc2).then(function (doc) {
+        db.insert(nc2, function (err, doc) {
             delete doc._id;
             if (_.isEqual(doc, nc2)) done();
         });
@@ -107,7 +107,7 @@ describe('Insert Check', function () {
 
     it('insert nc3 again', function (done) {
         nc3.defaultJoinTime = 30;
-        fbdb.insert(nc3).then(function (doc) {
+        db.insert(nc3, function (err, doc) {
             delete doc._id;
             if (_.isEqual(doc, nc3)) done();
         });
@@ -116,41 +116,41 @@ describe('Insert Check', function () {
 
 describe('Find By Id Check', function () {
     it('find nc1', function (done) {
-        fbdb.findById(nc1.id).then(function (doc) {
+        db.findById(nc1.id, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc1, doc)) done();
         });
     });
 
     it('find nc2', function (done) {
-        fbdb.findById(nc2.id).then(function (doc) {
+        db.findById(nc2.id, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc2, doc)) done();
         });
     });
 
     it('find nc3', function (done) {
-        fbdb.findById(nc3.id).then(function (doc) {
+        db.findById(nc3.id, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc3, doc)) done();
         });
     });
 
     it('find nc4', function (done) {
-        fbdb.findById(nc4.id, function (err, doc) {
+        db.findById(nc4.id, function (err, doc) {
             if (!doc) done();
         });
     });
 
     it('insert nc4', function (done) {
-        fbdb.insert(nc4).then(function (doc) {
+        db.insert(nc4, function (err, doc) {
             delete doc._id;
             if (_.isEqual(doc, nc4)) done();
         });
     });
 
     it('find nc4', function (done) {
-        fbdb.findById(nc4.id).then(function (doc) {
+        db.findById(nc4.id, function (err, doc) {
             delete doc._id;
             if (_.isEqual(nc4, doc)) done();
         });
@@ -159,61 +159,61 @@ describe('Find By Id Check', function () {
 
 describe('Modify Check', function () {
     it('modify id', function (done) {
-        fbdb.modify(1, 'id', 5).fail(function (err) {
+        db.modify(1, 'id', 5, function (err) {
             if (err) done();
         });
     });
 
     it('modify id', function (done) {
-        fbdb.modify(1, 'id', { x: 10 }).fail(function (err) {
+        db.modify(1, 'id', { x: 10 }, function (err) {
             if (err) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'protocol', 'zigbeee').then(function (diff) {
+        db.modify(1, 'protocol', 'zigbeee', function (err, diff) {
             if (_.isEqual(diff, { protocol: 'zigbeee' })) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'startTime', 6500).then(function (diff) {
+        db.modify(1, 'startTime', 6500, function (err, diff) {
             if (_.isEqual(diff, { startTime: 6500 })) done();
         });
     });
     
     it('modify()', function (done) {
-        fbdb.modify(1, 'traffic.in', { hits: 1, bytes: 0 }).then(function (diff) {
+        db.modify(1, 'traffic.in', { hits: 1, bytes: 0 }, function (err, diff) {
             if (_.isEqual(diff, { hits: 1 })) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'traffic.in', { hits: 1, bytes: 50 }).then(function (diff) {
+        db.modify(1, 'traffic.in', { hits: 1, bytes: 50 }, function (err, diff) {
             if (_.isEqual(diff, { bytes: 50 })) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'traffic.in', { hits: 1 }).then(function (diff) {
+        db.modify(1, 'traffic.in', { hits: 1 }, function (err, diff) {
             if (_.isEqual(diff, { })) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'traffic.in', { hitss: 1 }).fail(function (err) {
+        db.modify(1, 'traffic.in', { hitss: 1 }, function (err) {
             if (err) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'traffic', { hits: 1 }).fail(function (err) {
+        db.modify(1, 'traffic', { hits: 1 }, function (err) {
             if (err) done();
         });
     });
 
     it('modify()', function (done) {
-        fbdb.modify(1, 'Xtraffic', { hits: 1 }).fail(function (err) {
+        db.modify(1, 'Xtraffic', { hits: 1 }, function (err) {
             if (err) done();
         });
     });
@@ -221,57 +221,73 @@ describe('Modify Check', function () {
 
 describe('Replace Check', function () {
     it('replace id', function (done) {
-        fbdb.replace(1, 'id', 5).fail(function (err) {
+        db.replace(1, 'id', 5, function (err) {
             if (err) done();
         });
     });
 
     it('replace()', function (done) {
-        fbdb.replace(1, 'startTime', 20000).then(function () {
-            return fbdb.findById(1);
-        }).then(function (doc) {
-            if (doc.startTime === 20000) done();
+        db.replace(1, 'startTime', 20000, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                db.findById(1, function (err, doc) {
+                    if (doc.startTime === 20000) done();
+                });
+            }
         });
     });
 
     it('replace()', function (done) {
-        fbdb.replace(1, 'enabled', true).then(function () {
-            return fbdb.findById(1);
-        }).then(function (doc) {
-            if (doc.enabled === true) done();
+        db.replace(1, 'enabled', true, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                db.findById(1, function (err, doc) {
+                    if (doc.enabled === true) done();
+                });
+            }
         });
     });
 
     it('replace()', function (done) {
-        fbdb.replace(1, 'traffic.in.hits', 10).then(function () {
-            return fbdb.findById(1);
-        }).then(function (doc) {
-            if (doc.traffic.in.hits === 10) done();
+        db.replace(1, 'traffic.in.hits', 10, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                db.findById(1, function (err, doc) {
+                    if (doc.traffic.in.hits === 10) done();
+                });
+            }
         });
     });
 
     it('replace()', function (done) {
-        fbdb.replace(1, 'traffic.out', { hits: 5, bytes: 85 }).then(function () {
-            return fbdb.findById(1);
-        }).then(function (doc) {
-            if (_.isEqual(doc.traffic.out, { hits: 5, bytes: 85 })) done();
+        db.replace(1, 'traffic.out', { hits: 5, bytes: 85 }, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                db.findById(1, function (err, doc) {
+                    if (_.isEqual(doc.traffic.out, { hits: 5, bytes: 85 })) done();
+                });
+            }
         });
     });
 
     it('replace - find nothing', function (done) {
-        fbdb.replace(5, 'traffic.in.hits', 10).fail(function (err) {
+        db.replace(5, 'traffic.in.hits', 10, function (err) {
             if (err) done();
         });
     });
 
     it('replace - find nothing', function (done) {
-        fbdb.replace(1, 'traffic.in.hitss', 10).fail(function (err) {
+        db.replace(1, 'traffic.in.hitss', 10, function (err) {
             if (err) done();
         });
     });
 
     it('replace - find nothing', function (done) {
-        fbdb.replace(1, 'trafficc.in.hitss', 10).fail(function (err) {
+        db.replace(1, 'trafficc.in.hitss', 10, function (err) {
             if (err) done();
         });
     });
@@ -279,7 +295,7 @@ describe('Replace Check', function () {
 
 describe('Find All Check', function () {
     it('findAll()', function (done) {
-        fbdb.findAll().then(function (docs) {
+        db.findAll(function (err, docs) {
             if (_.size(docs) === 4) done();
         });
     });
@@ -287,10 +303,10 @@ describe('Find All Check', function () {
 
 describe('Remove By Id Check', function () {
     it('remove()', function (done) {
-        fbdb.removeById(1).then(function () {
-            return fbdb.findById(1);
-        }).then(function (doc) {
-            if (_.isNull(doc)) done();
+        db.removeById(1, function () {
+            db.findById(1, function(err, doc) {
+                if (_.isNull(doc)) done();
+            });
         });
     });
 });
