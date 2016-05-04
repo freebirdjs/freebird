@@ -281,16 +281,16 @@ describe('Functional Check', function () {
 
     it('replace()', function (done) {
         gadBox.replace(3, 'props', {}, function () {
-            gadBox.reload(function (err, docs) {
-                if (_.isEqual(docs[2].props, {})) done();
+            gadBox.findFromDb({id: 3}, function (err, docs) {
+                if (_.isEqual(docs[0].props, {})) done();
             });
         });
     });
 
     it('replace()', function (done) {
         gadBox.replace(3, 'attrs.power', 10, function () {
-            gadBox.reload(function (err, docs) {
-                if (docs[2].attrs.power === 10) done();
+            gadBox.findFromDb({id: 3}, function (err, docs) {
+                if (docs[0].attrs.power === 10) done();
             });
         });
     });
@@ -304,24 +304,15 @@ describe('Functional Check', function () {
             if (err) {
                 console.log(err);
             } else {
-                gadBox.reload(function(err, docs) {
+                gadBox.findFromDb({id: {$exists: true}},function(err, docs) {
                     if (err) {
                         console.log(err);
                     } else {
-                        _.forEach(docs, function (doc) {
-                            delete doc._id;
-                        });
-                        if (_.isEqual(docs, [gadInfo1, gadInfo2, gadInfo3])) done();
+                        if (docs.length === 3) done();
                     }
                 });
 
             }
-        });
-    });
-
-    it('reload()', function (done) {
-        gadBox.reload(function (err, docs) {
-            if (_.size(docs) === 3) done();
         });
     });
 
@@ -334,6 +325,13 @@ describe('Functional Check', function () {
     it('remove()', function (done) {
         gadBox.remove(1, function (err) {
             if (!err) done();
+        });
+    });
+
+    it('findFromDb()', function (done) {
+        gadBox.findFromDb({auxId: 3328}, function (err, docs) {
+            delete docs[0]._id;
+            if (_.isEqual(docs[0], gad3.dump())) done();
         });
     });
 

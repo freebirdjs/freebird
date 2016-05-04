@@ -293,6 +293,15 @@ describe('Replace Check', function () {
     });
 });
 
+describe('Find', function () {
+    it('find()', function (done) {
+        db.find({id: 3, name: 'nc3'}, function (err, docs) {
+            delete docs[0]._id;
+            if (_.isEqual(docs[0], nc3)) done();
+        });
+    });
+});
+
 describe('Find All Check', function () {
     it('findAll()', function (done) {
         db.findAll(function (err, docs) {
