@@ -23,5 +23,10 @@
     "nedb": "^1.8.0",
     "objectbox": "0.0.5",
     "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "freebird-netcore-mockup": "0.0.2",
+    "mocha": "^2.5.3"
   }
 }
