@@ -21,12 +21,12 @@
     "freebird-websocket": "0.0.1",
     "lodash": "^4.12.0",
     "nedb": "^1.8.0",
-    "objectbox": "0.0.5",
+    "objectbox": "^0.0.6",
     "q": "^1.4.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "freebird-netcore-mockup": "0.0.2",
+    "freebird-netcore-mockup": "0.0.3",
     "mocha": "^2.5.3"
   }
 }
