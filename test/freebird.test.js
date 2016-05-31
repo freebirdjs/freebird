@@ -40,5 +40,6 @@ fbird.on('_nc:devIncoming', function (data) {
 
 fbird.start(function (err) {
     console.log('start');
+    fbird.net.permitJoin('mock', 180);
     // console.log(ncMock._fb);
 });
