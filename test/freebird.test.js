@@ -34,13 +34,13 @@ fbird.on('error', function (err) {
 fbird.on('devIncoming', function (data) {
     console.log('>>>>>>>> devIncoming');
     // console.log(err);
-    console.log(data.dev._gads);
+    // console.log(data.dev._gads);
 });
 
 fbird.on('gadIncoming', function (data) {
     console.log('>>>>>>>> gadIncoming');
     // console.log(err);
-    console.log(data.gad.getDev()._gads);
+    // console.log(data.gad.getDev()._gads);
 });
 
 
