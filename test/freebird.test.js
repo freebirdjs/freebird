@@ -31,6 +31,25 @@ fbird.on('error', function (err) {
     console.log(err);
 });
 
+fbird.on('devIncoming', function (data) {
+    console.log('>>>>>>>> devIncoming');
+    // console.log(err);
+    console.log(data.dev._gads);
+});
+
+fbird.on('gadIncoming', function (data) {
+    console.log('>>>>>>>> gadIncoming');
+    // console.log(err);
+    console.log(data.gad.getDev()._gads);
+});
+
+
+// fbird.on('devIncoming', function (data) {
+//     console.log('>>>>>>>> devIncoming');
+//     // console.log(err);
+//     console.log(data.dev);
+// });
+
 
 fbird.on('_nc:devIncoming', function (data) {
     console.log('_nc:devIncoming');
