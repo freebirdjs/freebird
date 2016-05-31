@@ -1,6 +1,6 @@
 {
   "name": "freebird",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "app framework",
   "main": "index.js",
   "scripts": {
@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
-    "freebird-base": "^0.1.5",
-    "freebird-websocket": "^0.0.2",
+    "freebird-base": "^0.1.6",
+    "freebird-websocket": "^0.0.3",
     "lodash": "^4.12.0",
     "nedb": "^1.8.0",
     "objectbox": "^0.0.6",
@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "freebird-netcore-mockup": "^0.0.5",
+    "freebird-netcore-mockup": "^0.0.6",
     "mocha": "^2.5.3"
   }
 }
