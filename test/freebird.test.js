@@ -27,7 +27,8 @@ fbird.registerNetcore(ncMock, function (err, nc) {
 });
 
 fbird.on('error', function (err) {
-    console.log('>> FB:error');
+    // console.log('>> FB:error');
+    // console.log(err);
 });
 
 fbird.on('devIncoming', function (msg) {
@@ -36,7 +37,7 @@ fbird.on('devIncoming', function (msg) {
 });
 
 fbird.on('devLeaving', function (msg) {
-    console.log('>> FB:devLeaving');
+    console.log('>> FB:devLeaving');    // won't shot if not manual leaving
     console.log(msg);
 });
 
@@ -70,11 +71,11 @@ fbird.on('bannedGadReporting', function (msg) {
 
 fbird.on('gadReporting', function (msg) {
     console.log('>> FB:gadReporting');
-    console.log({ gad: msg.gad.getId(), data: msg.data });
+    // console.log({ gad: msg.gad.getId(), data: msg.data });
 });
 
 fbird.on('netReady', function (msg) {
-    console.log('>> FB:netReady');
+    // console.log('>> FB:netReady');
 });
 
 fbird.on('permitJoin', function (msg) {
@@ -104,8 +105,8 @@ fbird.on('netChanged', function (msg) {
 });
 
 fbird.on('statusChanged', function (msg) {
-    // console.log('>> FB:statusChanged');
-    // console.log({ dev: msg.dev.getId(), data: msg.data });
+    console.log('>> FB:statusChanged');
+    console.log({ dev: msg.dev.getId(), data: msg.data });
 });
 
 fbird.on('devPropsChanged', function (msg) {
@@ -130,7 +131,6 @@ fbird.on('gadPropsChanged', function (msg) {
 fbird.on('gadAttrsChanged', function (msg) {
     // console.log('>> FB:gadAttrsChanged');
     // console.log({ gad: msg.gad.getId(), data: msg.data });
-
 });
 
 fbird.start(function (err) {
