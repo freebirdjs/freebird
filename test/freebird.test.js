@@ -31,9 +31,21 @@ fbird.on('error', function (err) {
     // console.log(err);
 });
 
+var banned = false;
+
 fbird.on('devIncoming', function (msg) {
     console.log('>> FB:devIncoming');
-    // console.log(msg);
+    console.log({ dev: msg.dev.getId() });
+
+    if (!banned) {
+        banned = true;
+        setTimeout(function () {
+            fbird.net.ban('mock', "AA:BB:CC:DD:EE:02", function () {
+                console.log('banned...');
+            });
+        }, 1000);
+    }
+
 });
 
 fbird.on('devLeaving', function (msg) {
