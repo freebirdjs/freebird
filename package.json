@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
+    "busyman": "^0.2.1",
     "freebird-base": "^0.2.0",
     "freebird-websocket": "^0.0.4",
     "lodash": "^4.12.0",
