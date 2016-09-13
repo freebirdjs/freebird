@@ -18,12 +18,9 @@
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
     "busyman": "^0.2.1",
-    "freebird-base": "^0.2.0",
+    "freebird-base": "^0.2.6",
     "freebird-websocket": "^0.0.4",
-    "lodash": "^4.12.0",
-    "nedb": "^1.8.0",
-    "objectbox": "^0.0.6",
-    "q": "^1.4.1"
+    "objectbox": "^0.2.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
