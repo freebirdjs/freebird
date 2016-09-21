@@ -20,11 +20,12 @@
     "busyman": "^0.2.1",
     "freebird-base": "^0.2.6",
     "freebird-websocket": "^0.0.4",
-    "objectbox": "^0.2.1"
+    "objectbox": "^0.2.1",
+    "proving": "^0.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "freebird-netcore-mockup": "^0.0.8",
+    "freebird-netcore-mockup": "^0.1.0",
     "mocha": "^2.5.3"
   }
 }

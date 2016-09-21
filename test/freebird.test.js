@@ -1,5 +1,5 @@
 var util = require('util');
-var _ = require('lodash');
+var _ = require('busyman');
 var http = require('http');
 var ncMock = require('freebird-netcore-mockup');
 var expect = require('chai').expect,
