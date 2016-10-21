@@ -1,6 +1,44 @@
 # freebird
 
-Status: Experimental, Unstable
+## Status: Experimental, Unstable
+
+## Table of Contents
+
+1. [Overview](#Overview)  
+2. [Features](#Features)  
+3. [Installation](#Installation)  
+4. [Basic Usage](#Basic)  
+5. [APIs and Events](#APIs)  
+    * Basic Methods
+    * Network Management
+    * Device Operations
+    * Gadget Operations
+
+<a name="Overview"></a>
+## 1. Overview
+
+### TBD
+
+<a name="Features"></a>
+## 2. Overview
+
+### TBD
+
+<a name="Installation"></a>
+## 3. Installation
+
+### TBD
+
+<a name="Basic"></a>
+## 4. Basic Usage
+
+### TBD
+
+<a name="APIs"></a>
+## 5. APIs and Events
+
+### TBD
+
 
 freebird._find('plugin')
 freebird._find('wsApi')
@@ -183,3 +221,52 @@ freebird.gad.write
 freebird.gad.exec
 freebird.gad.setReportCfg
 freebird.gad.getReportCfg
+
+********************************************
+## Events
+
+* Event: 'error'
+    - data: `{}`
+
+* Event: 'netReady'
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'permitJoin'
+    - data: `{ netcore: 'xxx', timeLeft: 180 }`
+
+* Event: 'started'
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'stopped'
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'enabled'
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'disabled'
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'netChanged'
+    - data: `{ netcore: 'xxx', dev: 3, data: delta }`
+    - data: `{ netcore: 'xxx', gad: 7, data: delta }`
+
+
+
+
+'netChanged',
+'statusChanged',
+'devPropsChanged',
+'devAttrsChanged',
+'panelChanged',
+'gadPropsChanged',
+'gadAttrsChanged',
+'devIncoming',
+'devLeaving',
+'devReporting',
+'bannedDevIncoming',
+'bannedDevReporting',
+'gadIncoming',
+'gadLeaving',
+'gadReporting',
+'bannedGadIncoming',
+'bannedGadReporting'
