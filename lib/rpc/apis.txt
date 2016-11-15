@@ -1,0 +1,43 @@
+_intf = 'REQ' (0), 'RSP' (1), 'IND' (2)
+subsys = 'net' (0), 'dev' (1), 'gad' (2)
+cmd = String | Number
+
+subsys = net, 0
+    getAllDevIds, 1
+    getAllGadIds, 2
+    getDevs, 3
+    getGads, 4
+    getNetcores, 5
+    getBlacklist, 6
+    permitJoin, 7
+    maintain, 8
+    reset, 9
+    enable, 10
+    disable, 11
+    ban, 12
+    unban, 13
+    remove, 14
+    ping, 15
+
+subsys = dev, 1
+    enable, 1
+    disable, 2
+    read, 3 
+    write, 4
+    identify, 5
+    getProps, 6
+    setProps, 7
+
+subsys = gad, 2
+    enable, 1
+    disable, 2
+    read, 3
+    write, 4
+    exec, 5
+    setReportCfg, 6
+    getReportCfg, 7
+    getProps, 8
+    setProps, 9
+
+
+INDICATION:
