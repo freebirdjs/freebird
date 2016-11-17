@@ -9,10 +9,16 @@
 3. [Installation](#Installation)  
 4. [Basic Usage](#Basic)  
 5. [APIs and Events](#APIs)  
-    * Basic Methods
-    * Network Management
-    * Device Operations
-    * Gadget Operations
+    * Basic methods
+    * Network management
+6. Freebird Base Classes
+    * Netcore class
+    * Device class
+    * Gadget class
+7. Advanced Topics
+    * Remote process communication (RPC)
+    * How to add a transport for RPC
+    * How to add a plugin
 
 <a name="Overview"></a>
 ## 1. Overview
@@ -20,34 +26,50 @@
 ### TBD
 
 <a name="Features"></a>
-## 2. Overview
+## 2. Features
 
 ### TBD
 
 <a name="Installation"></a>
 ## 3. Installation
 
-### TBD
+> $ npm install freebird --save
 
 <a name="Basic"></a>
 ## 4. Basic Usage
 
-### TBD
+```js
+var Freebird = require('freebird'),
+    bleCore = require('freebird-netcore-ble'),
+    mqttCore = require('freebird-netcore-mqtt'),
+    coapCore = require('freebird-netcore-coap'),
+    zigbeeCore = require('freebird-netcore-coap');
+
+var freebird = new Freebird([ bleCore, mqttCore, coapCore, zigbeeCore ]);
+
+freebird.start(function (err) {
+    console.log('Server started');
+});
+
+freebird.on('ready', function () {
+    
+});
+
+freebird.on('devIncoming', function (dev) {
+    
+});
+
+freebird.on('gadIncoming', function (gad) {
+    
+});
+```
 
 <a name="APIs"></a>
 ## 5. APIs and Events
 
-### TBD
-
-
-freebird._find('plugin')
-freebird._find('wsApi')
-freebird._find('driver')
-
-
 ********************************************
 <a name="API_find"></a>
-### .find(type, pred)
+### .findById(type, id)
 Find netcore, device, or gadget from freebird by identifier or predicate function. If you like to find a device or a gadget by address, using `.findFromNetcore()` is a better choice then using `.find()` with a predicate function.
   
 **Arguments:**  
@@ -89,11 +111,12 @@ freebird.find('gadget', function (gad) {
 ```
 
 ********************************************
-<a name="API_findFromNetcore"></a>
-### .findFromNetcore(ncName, permAddr[, auxId])
-Find a device or a gadget from the specified netcore.  
-* To find a device: `findFromNetcore(ncName, permAddr)`
-* To find a gadget: `findFromNetcore(ncName, permAddr, auxId)`
+<a name="API_findByNet"></a>
+### .findByNet(type, ncName[, permAddr[, auxId]])
+
+* To find a netcore: `findByNet('netcore', ncName)`
+* To find a device: `findByNet('device', ncName, permAddr)`
+* To find a gadget: `findByNet('gadget', ncName, permAddr, auxId)`
   
 **Arguments:**  
 
@@ -108,8 +131,8 @@ Find a device or a gadget from the specified netcore.
 **Examples:**  
   
 ```js
-var fooDev = freebird.findFromNetcore('foo_netcore', '00:0c:29:3e:1b:d2');
-var barGad = freebird.findFromNetcore('foo_netcore', '00:0c:29:3e:1b:d2', 'humidity/2');
+var fooDev = freebird.findByNet('netcore', 'foo_netcore', '00:0c:29:3e:1b:d2');
+var barGad = freebird.findByNet('netcore', 'foo_netcore', '00:0c:29:3e:1b:d2', 'humidity/2');
 ```
 
 
@@ -184,31 +207,105 @@ Stop the freebird server.
 ```
 
 ********************************************
-Network Management
+<a name="API_remove"></a>
+### .remove()
+Stop the freebird server.  
+  
+**Arguments:**  
 
-Namespace: net
+* _none_
 
-freebird.net.start
-freebird.net.stop
-freebird.net.enable
-freebird.net.disable
-freebird.net.reset
-freebird.net.permitJoin
-freebird.net.remove
-freebird.net.ban
-freebird.net.unban
-freebird.net.ping
-freebird.net.maintain
+**Returns:**  
+
+* (_Boolean_): `true` if enabled, otherwise `false`.  
+
+**Examples:**  
+  
+```js
+```
+
+********************************************
+<a name="API_ban"></a>
+### .ban()
+Stop the freebird server.  
+  
+**Arguments:**  
+
+* _none_
+
+**Returns:**  
+
+* (_Boolean_): `true` if enabled, otherwise `false`.  
+
+**Examples:**  
+  
+```js
+```
+
+********************************************
+<a name="API_unban"></a>
+### .unban()
+Stop the freebird server.  
+  
+**Arguments:**  
+
+* _none_
+
+**Returns:**  
+
+* (_Boolean_): `true` if enabled, otherwise `false`.  
+
+**Examples:**  
+  
+```js
+```
+
+********************************************
+<a name="API_ping"></a>
+### .ping()
+Stop the freebird server.  
+  
+**Arguments:**  
+
+* _none_
+
+**Returns:**  
+
+* (_Boolean_): `true` if enabled, otherwise `false`.  
+
+**Examples:**  
+  
+```js
+```
+
+********************************************
+<a name="API_maintain"></a>
+### .maintain()
+Stop the freebird server.  
+  
+**Arguments:**  
+
+* _none_
+
+**Returns:**  
+
+* (_Boolean_): `true` if enabled, otherwise `false`.  
+
+**Examples:**  
+  
+```js
+```
+
 
 ********************************************
 Device Operations
 Namespace: dev
 
+freebird.dev.enable
+freebird.dev.disable
 freebird.dev.read
 freebird.dev.write
 freebird.dev.identify
-freebird.dev.enable
-freebird.dev.disable
 
 ********************************************
 Device Operations
@@ -249,8 +346,6 @@ freebird.gad.getReportCfg
 * Event: 'netChanged'
     - data: `{ netcore: 'xxx', dev: 3, data: delta }`
     - data: `{ netcore: 'xxx', gad: 7, data: delta }`
-
-
 
 
 'netChanged',
