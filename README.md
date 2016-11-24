@@ -2,6 +2,10 @@
 
 ## Status: Experimental, Unstable
 
+## About the Logo
+
+TBD
+
 ## Table of Contents
 
 1. [Overview](#Overview)  
@@ -138,7 +142,7 @@ var barGad = freebird.findByNet('netcore', 'foo_netcore', '00:0c:29:3e:1b:d2', '
 
 ********************************************
 <a name="API_start"></a>
-### .start()
+### .start([callback])
 Start the freebird server.  
   
 **Arguments:**  
@@ -156,7 +160,7 @@ Start the freebird server.
 
 ********************************************
 <a name="API_stop"></a>
-### .start()
+### .stop([callback])
 Stop the freebird server.  
   
 **Arguments:**  
@@ -173,7 +177,7 @@ Stop the freebird server.
 ```
 ********************************************
 <a name="API_reset"></a>
-### .reset()
+### .reset(mode[, callback])
 Stop the freebird server.  
   
 **Arguments:**  
@@ -190,7 +194,7 @@ Stop the freebird server.
 ```
 ********************************************
 <a name="API_permitJoin"></a>
-### .permitJoin()
+### .permitJoin(duration[, callback])
 Stop the freebird server.  
   
 **Arguments:**  
@@ -208,7 +212,7 @@ Stop the freebird server.
 
 ********************************************
 <a name="API_remove"></a>
-### .remove()
+### .remove(ncName, permAddr, callback)
 Stop the freebird server.  
   
 **Arguments:**  
@@ -226,7 +230,7 @@ Stop the freebird server.
 
 ********************************************
 <a name="API_ban"></a>
-### .ban()
+### .ban(ncName, permAddr, callback)
 Stop the freebird server.  
   
 **Arguments:**  
@@ -244,7 +248,7 @@ Stop the freebird server.
 
 ********************************************
 <a name="API_unban"></a>
-### .unban()
+### .unban(ncName, permAddr, callback)
 Stop the freebird server.  
   
 **Arguments:**  
@@ -262,7 +266,7 @@ Stop the freebird server.
 
 ********************************************
 <a name="API_ping"></a>
-### .ping()
+### .ping(ncName, permAddr, callback)
 Stop the freebird server.  
   
 **Arguments:**  
@@ -280,7 +284,7 @@ Stop the freebird server.
 
 ********************************************
 <a name="API_maintain"></a>
-### .maintain()
+### .maintain([ncName,][callback])
 Stop the freebird server.  
   
 **Arguments:**  
