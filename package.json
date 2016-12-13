@@ -1,6 +1,6 @@
 {
   "name": "freebird",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "app framework",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,8 @@
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
     "busyman": "^0.2.1",
-    "freebird-base": "^0.3.0",
-    "freebird-constants": "^0.0.2",
-    "freebird-websocket": "^0.0.4",
+    "freebird-base": "^0.4.0",
+    "freebird-constants": "^0.2.1",
     "objectbox": "^0.2.2",
     "proving": "^0.1.0"
   },
