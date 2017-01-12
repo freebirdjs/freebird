@@ -72,14 +72,20 @@ freebird.on('gadIncoming', function (gad) {
 ## 5. APIs and Events
 
 ********************************************
+<a name="API_Freebird"></a>
+### new Freebird(name, netcores, options)
+
+[TODO]
+
+********************************************
 <a name="API_findById"></a>
 ### .findById(type, id)
 Find a netcore by name, or find a device/gadget by id. If you like to find a device/gadget by address, using `.findByNet()`.  
   
 **Arguments:**  
 
-1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or 'gadget'` to find a netcore, a device, or  a gadget, respectively.  
-2. `pred` (_String_ | _Number_): `id` is the netcore name when finding for a netcore. `id` is a number when finding for a device or a gadget.  
+1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or `'gadget'` to find a netcore, a device, or  a gadget, respectively.  
+2. `id` (_String_ | _Number_): `id` is the netcore name when finding for a netcore. `id` is a number when finding for a device or a gadget.  
 
 **Returns:**  
 
@@ -112,7 +118,7 @@ Find a netcore, a device, or a gadget by network information.
   
 **Arguments:**  
 
-1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or 'gadget'` to find a netcore, a device, or  a gadget, respectively.  
+1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or `'gadget'` to find a netcore, a device, or  a gadget, respectively.  
 2. `ncName` (_String_): Netcore name.  
 3. `permAddr` (_String_): Permanent address of the device which is required when finding for a device or a gadget.  
 4. `auxId` (_String_ | _Number_): Auxiliary id of the gadget which is required when finding for a gadget.  
@@ -179,7 +185,7 @@ Add a transportation to freebird for RPC messaging. Please refer to [freebird-tr
   
 **Arguments:**  
 
-1. `transp` (_String_): The transportation.  
+1. `transp` (_Object_): The instance of transportation.  
 2. `callback` (_Function_): `function (err) {}`.  
 
 **Returns:**  
@@ -400,7 +406,7 @@ freebird.ping('mqtt-core', '00:0c:29:ff:ed:7c', function (err, time) {
 ********************************************
 <a name="API_maintain"></a>
 ### .maintain([ncName,][callback])
-[TBD] Stop the freebird server.  
+[TODO] Stop the freebird server.  
   
 **Arguments:**  
 
