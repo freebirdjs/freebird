@@ -1,5 +1,0 @@
-freebird.js
-
-(X) 1. Freebird.prototype.maintain = netmgmt.maintain; // [TODO] Should implement in netcore
-
-2. Freebird.prototype._tweet    //  [TODO] error event name?
