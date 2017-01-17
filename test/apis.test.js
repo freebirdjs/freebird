@@ -60,6 +60,309 @@ describe('APIs - signature checks', function() {
 
 
     // subSys: 'net'
+    describe('#.getAllDevIds', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.getAllDevIds({ ncName: 1 }, cb);
+            rpcApis.getAllDevIds({ ncName: {} }, cb);
+            rpcApis.getAllDevIds({ ncName: [] }, cb);
+            rpcApis.getAllDevIds({ ncName: NaN }, cb);
+            rpcApis.getAllDevIds({ ncName: new Date() }, cb);
+            rpcApis.getAllDevIds({ ncName: function () {} }, cb);
+        });
+    });
+
+    describe('#.getAllGadIds', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.getAllGadIds({ ncName: 1 }, cb);
+            rpcApis.getAllGadIds({ ncName: {} }, cb);
+            rpcApis.getAllGadIds({ ncName: [] }, cb);
+            rpcApis.getAllGadIds({ ncName: NaN }, cb);
+            rpcApis.getAllGadIds({ ncName: new Date() }, cb);
+            rpcApis.getAllGadIds({ ncName: function () {} }, cb);
+        });
+    });
+
+    describe('#.getDevs', function() {
+        it('should has error if args.ids is not an array of number or string', function (done) {
+            var errMsg = 'ids should be an array of number or string',
+                cb = getCheckedCb(7, errMsg, done);
+
+            rpcApis.getDevs({ ids: 1 }, cb);
+            rpcApis.getDevs({ ids: {} }, cb);
+            rpcApis.getDevs({ ids: NaN }, cb);
+            rpcApis.getDevs({ ids: new Date() }, cb);
+            rpcApis.getDevs({ ids: function () {} }, cb);
+            rpcApis.getDevs({ ids: null }, cb);
+            rpcApis.getDevs({ ids: undefined }, cb);
+        });
+    });
+
+    describe('#.getGads', function() {
+        it('should has error if args.ids is not an array of number or string', function (done) {
+            var errMsg = 'ids should be an array of number or string',
+                cb = getCheckedCb(7, errMsg, done);
+
+            rpcApis.getGads({ ids: 1 }, cb);
+            rpcApis.getGads({ ids: {} }, cb);
+            rpcApis.getGads({ ids: NaN }, cb);
+            rpcApis.getGads({ ids: new Date() }, cb);
+            rpcApis.getGads({ ids: function () {} }, cb);
+            rpcApis.getGads({ ids: null }, cb);
+            rpcApis.getGads({ ids: undefined }, cb);
+        });
+    });
+
+    describe('#.getNetcores', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.getAllGadIds({ ncName: 1 }, cb);
+            rpcApis.getAllGadIds({ ncName: {} }, cb);
+            rpcApis.getAllGadIds({ ncName: [] }, cb);
+            rpcApis.getAllGadIds({ ncName: NaN }, cb);
+            rpcApis.getAllGadIds({ ncName: new Date() }, cb);
+            rpcApis.getAllGadIds({ ncName: function () {} }, cb);
+        });
+    });
+
+    describe('#.getBlacklist', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.getBlacklist({ ncName: 1 }, cb);
+            rpcApis.getBlacklist({ ncName: {} }, cb);
+            rpcApis.getBlacklist({ ncName: [] }, cb);
+            rpcApis.getBlacklist({ ncName: NaN }, cb);
+            rpcApis.getBlacklist({ ncName: new Date() }, cb);
+            rpcApis.getBlacklist({ ncName: function () {} }, cb);
+            rpcApis.getBlacklist({ ncName: null }, cb);
+            rpcApis.getBlacklist({ ncName: undefined }, cb);
+        });
+    });
+
+    describe('#.permitJoin', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.permitJoin({ ncName: 1, duration: 180 }, cb);
+            rpcApis.permitJoin({ ncName: {}, duration: 180 }, cb);
+            rpcApis.permitJoin({ ncName: [], duration: 180 }, cb);
+            rpcApis.permitJoin({ ncName: NaN, duration: 180 }, cb);
+            rpcApis.permitJoin({ ncName: new Date(), duration: 180 }, cb);
+            rpcApis.permitJoin({ ncName: function () {}, duration: 180 }, cb);
+        });
+
+        it('should has error if args.duration is not a number', function (done) {
+            var errMsg = 'duration should be a number',
+                cb = getCheckedCb(7, errMsg, done);
+
+            rpcApis.permitJoin({ ncName: 'zCore', duration: '1' }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: {} }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: [] }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: null }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: undefined }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: new Date() }, cb);
+            rpcApis.permitJoin({ ncName: 'zCore', duration: function () {} }, cb);
+        });
+    });
+
+    describe('#.reset', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.reset({ ncName: 1, mode: 0 }, cb);
+            rpcApis.reset({ ncName: {}, mode: 0 }, cb);
+            rpcApis.reset({ ncName: [], mode: 0 }, cb);
+            rpcApis.reset({ ncName: NaN, mode: 0 }, cb);
+            rpcApis.reset({ ncName: new Date(), mode: 0 }, cb);
+            rpcApis.reset({ ncName: function () {}, mode: 0 }, cb);
+        });
+
+        it('should has error if args.mode is not a number', function (done) {
+            var errMsg = 'mode only accepts 0 or 1',
+                cb = getCheckedCb(7, errMsg, done);
+
+            rpcApis.reset({ ncName: 'zCore', mode: '1' }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: {} }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: [] }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: null }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: undefined }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: new Date() }, cb);
+            rpcApis.reset({ ncName: 'zCore', mode: function () {} }, cb);
+        });
+    });
+
+    describe('#.enable', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.enable({ ncName: 1 }, cb);
+            rpcApis.enable({ ncName: {} }, cb);
+            rpcApis.enable({ ncName: [] }, cb);
+            rpcApis.enable({ ncName: NaN }, cb);
+            rpcApis.enable({ ncName: new Date() }, cb);
+            rpcApis.enable({ ncName: function () {} }, cb);
+        });
+    });
+
+    describe('#.disable', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.disable({ ncName: 1 }, cb);
+            rpcApis.disable({ ncName: {} }, cb);
+            rpcApis.disable({ ncName: [] }, cb);
+            rpcApis.disable({ ncName: NaN }, cb);
+            rpcApis.disable({ ncName: new Date() }, cb);
+            rpcApis.disable({ ncName: function () {} }, cb);
+        });
+    });
+
+    describe('#.ban', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.ban({ ncName: 1, permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: {}, permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: [], permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: NaN, permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: new Date(), permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: function () {}, permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: null, permAddr: '0x123456789' }, cb);
+            rpcApis.ban({ ncName: undefined, permAddr: '0x123456789' }, cb);
+        });
+
+        it('should has error if args.permAddr is not a string', function (done) {
+            var errMsg = 'permAddr should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.ban({ ncName: 'zCore', permAddr: 1 }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: {} }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: [] }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: NaN }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: new Date() }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: function () {} }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: null }, cb);
+            rpcApis.ban({ ncName: 'zCore', permAddr: undefined }, cb);
+        });
+    });
+
+    describe('#.unban', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.unban({ ncName: 1, permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: {}, permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: [], permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: NaN, permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: new Date(), permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: function () {}, permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: null, permAddr: '0x123456789' }, cb);
+            rpcApis.unban({ ncName: undefined, permAddr: '0x123456789' }, cb);
+        });
+
+        it('should has error if args.permAddr is not a string', function (done) {
+            var errMsg = 'permAddr should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.unban({ ncName: 'zCore', permAddr: 1 }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: {} }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: [] }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: NaN }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: new Date() }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: function () {} }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: null }, cb);
+            rpcApis.unban({ ncName: 'zCore', permAddr: undefined }, cb);
+        });
+    });
+
+    describe('#.remove', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.remove({ ncName: 1, permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: {}, permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: [], permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: NaN, permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: new Date(), permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: function () {}, permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: null, permAddr: '0x123456789' }, cb);
+            rpcApis.remove({ ncName: undefined, permAddr: '0x123456789' }, cb);
+        });
+
+        it('should has error if args.permAddr is not a string', function (done) {
+            var errMsg = 'permAddr should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.remove({ ncName: 'zCore', permAddr: 1 }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: {} }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: [] }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: NaN }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: new Date() }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: function () {} }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: null }, cb);
+            rpcApis.remove({ ncName: 'zCore', permAddr: undefined }, cb);
+        });
+    });
+
+    describe('#.ping', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.ping({ ncName: 1, permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: {}, permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: [], permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: NaN, permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: new Date(), permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: function () {}, permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: null, permAddr: '0x123456789' }, cb);
+            rpcApis.ping({ ncName: undefined, permAddr: '0x123456789' }, cb);
+        });
+
+        it('should has error if args.permAddr is not a string', function (done) {
+            var errMsg = 'permAddr should be a string',
+                cb = getCheckedCb(8, errMsg, done);
+
+            rpcApis.ping({ ncName: 'zCore', permAddr: 1 }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: {} }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: [] }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: NaN }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: new Date() }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: function () {} }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: null }, cb);
+            rpcApis.ping({ ncName: 'zCore', permAddr: undefined }, cb);
+        });
+    });
+
+    describe('#.maintain', function() {
+        it('should has error if args.ncName is not a string', function (done) {
+            var errMsg = 'ncName should be a string',
+                cb = getCheckedCb(6, errMsg, done);
+
+            rpcApis.maintain({ ncName: 1 }, cb);
+            rpcApis.maintain({ ncName: {} }, cb);
+            rpcApis.maintain({ ncName: [] }, cb);
+            rpcApis.maintain({ ncName: NaN }, cb);
+            rpcApis.maintain({ ncName: new Date() }, cb);
+            rpcApis.maintain({ ncName: function () {} }, cb);
+        });
+    });
 
     // subSys: 'dev'
     describe('#enable(args, callback)', function () {
