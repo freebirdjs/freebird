@@ -55,8 +55,29 @@ describe('freebird - Constructor Check', function () {
 
 describe('freebird - Signature Check', function () {
     describe('#addTransport(name, transp, callback)', function () {
-        it('', function () {
+        it('should throw if name is not a string', function () {
+            expect(function () { return fbWithNc.addTransport(10); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.addTransport([]); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.addTransport(null); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.addTransport(NaN); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.addTransport(true); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.addTransport(function () {}); }).to.throw(TypeError);
+        });
 
+        it('should not throw if name is a string', function () {            
+            expect(function () { return fbWithNc.addTransport('xxx'); }).not.to.throw(TypeError);
+        });
+
+        it('should has error if transp is not a transp', function (done) {  
+            var cb = getCheckedCb(7, done);
+
+            fbWithNc.addTransport('xxx', 1, cb);
+            fbWithNc.addTransport('xxx', 'yyy', cb);
+            fbWithNc.addTransport('xxx', [], cb);
+            fbWithNc.addTransport('xxx', null, cb);
+            fbWithNc.addTransport('xxx', NaN, cb);
+            fbWithNc.addTransport('xxx', true, cb);
+            fbWithNc.addTransport('xxx', function () {}, cb);
         });
     });
 
@@ -77,13 +98,7 @@ describe('freebird - Signature Check', function () {
             expect(function () { return fbWithNc.findById('gadget'); }).not.to.throw(TypeError);
         });
 
-        it('should throw if id is not a number [TODO]', function () {
-            // id should be a string? 
-        });
-
-        it('should not throw if id is a number', function () {
-            expect(function () { return fbWithNc.findById('device', 1); }).not.to.throw(TypeError);
-        });
+        // id don't check
     });
 
     describe('#findByNet(type, ncName, permAddr, auxId)', function () {
@@ -103,29 +118,7 @@ describe('freebird - Signature Check', function () {
             expect(function () { return fbWithNc.findByNet('gadget'); }).not.to.throw(TypeError);
         });
 
-        it('should throw if ncName is not a string [TODO]', function () {
-            // ncName should be a string? 
-        });
-
-        it('should not throw if ncName is a string', function () {            
-            expect(function () { return fbWithNc.findByNet('netcore', 'fakeNc1'); }).not.to.throw(TypeError);
-        });
-
-        it('should throw if permAddr is not a string [TODO]', function () {
-            // permAddr should be a string? 
-        });
-
-        it('should not throw if permAddr is a string', function () {            
-            expect(function () { return fbWithNc.findByNet('device', 'fakeNc1', 'xxx'); }).not.to.throw(TypeError);
-        });
-
-        it('should throw if auxId is not a string [TODO]', function () {
-            // auxId should be a string? 
-        });
-
-        it('should not throw if auxId is a string', function () {            
-            expect(function () { return fbWithNc.findByNet('gadget', 'fakeNc1', 'xxx', 'yyy'); }).not.to.throw(TypeError);
-        });
+        // ncName, permAddr, auxId don't check
     });
 
     describe('#filter(type, pred)', function () {
@@ -139,18 +132,19 @@ describe('freebird - Signature Check', function () {
             expect(function () { return fbWithNc.filter(function () {}); }).to.throw(TypeError);
         });
 
-        it('should throw if type is know', function () {            
-            expect(function () { return fbWithNc.filter('netcore'); }).not.to.throw(TypeError);
-            expect(function () { return fbWithNc.filter('device'); }).not.to.throw(TypeError);
-            expect(function () { return fbWithNc.filter('gadget'); }).not.to.throw(TypeError);
+        it('should throw if pred is not a function', function () {
+            expect(function () { return fbWithNc.filter('device', 1); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', 'xxx'); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', []); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', null); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', NaN); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', true); }).to.throw(TypeError);
         });
 
-        it('should throw if pred is not a string [TODO]', function () {
-            // pred should be a string? 
-        });
-
-        it('should not throw if pred is a string', function () {            
-            expect(function () { return fbWithNc.findByNet('device', 'xxx'); }).not.to.throw(TypeError);
+        it('should not throw if type is know and pred is a function', function () {  
+            expect(function () { return fbWithNc.filter('netcore', function () {}); }).not.to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('device', function () {}); }).not.to.throw(TypeError);
+            expect(function () { return fbWithNc.filter('gadget', function () {}); }).not.to.throw(TypeError);
         });
     });
 
@@ -178,10 +172,6 @@ describe('freebird - Signature Check', function () {
             fbWithNc.register('device', true, cb);
             fbWithNc.register('device', function () {}, cb);
         });
-
-        it('should throw if callback is not a function [TODO]', function () {
-            // need to check
-        });
     });
 
     describe('#unregister(type, obj, callback)', function () {
@@ -207,10 +197,6 @@ describe('freebird - Signature Check', function () {
             fbWithNc.unregister('device', NaN, cb);
             fbWithNc.unregister('device', true, cb);
             fbWithNc.unregister('device', function () {}, cb);
-        });
-        
-        it('should throw if callback is not a function [TODO]', function () {
-            // need to check
         });
     });
 
@@ -439,7 +425,6 @@ describe('freebird - Signature Check', function () {
             expect(function () { return fbWithNc.maintain([]); }).to.throw(TypeError);
             expect(function () { return fbWithNc.maintain(NaN); }).to.throw(TypeError);
             expect(function () { return fbWithNc.maintain(true); }).to.throw(TypeError);
-            // expect(function () { return fbWithNc.maintain(function () {}); }).to.throw(TypeError);
         });
 
         it('should not throw if duration is a string, null or not given', function () {            
