@@ -4,8 +4,7 @@ var fs = require('fs'),
 var _ = require('busyman'),
     expect = require('chai').expect;
 
-var Freebird = require('../index'),
-    Agent = require('../lib/rpc/agent');
+var Freebird = require('../index');
 
 var fakeNc = {
         _freebird: {},
@@ -22,14 +21,9 @@ var fakeNc = {
         maintain: function () {}
     },
     fbWithNc = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices1.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets1.db')
-    }}),
-    fbWithoutNc = new Freebird([], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices2.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets2.db')
-    }}),
-    agent = new Agent(fbWithNc);
+        device: path.resolve(__dirname, '../database/testDevices.db'), 
+        gadget: path.resolve(__dirname, '../database/testGadgets.db')
+    }});
 
 describe('freebird - Constructor Check', function () {
     describe('Freebird Constructor', function () {
