@@ -118,31 +118,29 @@ var fakeNc = {
 
 describe('freebird - Functional Check', function () {
     describe('#findById(type, id)', function () {
+        before(function(done) {
+            fakeDev._recovering = false;
+            fb.register('device', fakeDev, function (err, id) {
+                fakeGad._recovering = false;
+                fb.register('gadget', fakeGad, function (err, id) {
+                    done();
+                });
+            });
+        });
+
         it('should find netcore by id', function (done) {
             if (fb.findById('netcore', 'fakeNc1') === fakeNc)
                 done();
         });
 
         it('should find device by id', function (done) {
-            var getStub = sinon.stub(fb._devbox, 'get', function (id) {
-                    if (id === 'xxx') {
-                        getStub.restore();
-                        done();
-                    }
-                });
-
-            fb.findById('device', 'xxx');
+            if (fb.findById('device', 1) === fakeDev)
+                 done();
         });        
 
         it('should find gadget by id', function (done) {
-            var getStub = sinon.stub(fb._gadbox, 'get', function (id) {
-                    if (id === 'xxx') {
-                        getStub.restore();
-                        done();
-                    }
-                });
-
-            fb.findById('gadget', 'xxx');
+            if (fb.findById('gadget', 1) === fakeGad)
+                 done();
         });
     });
 
@@ -153,56 +151,50 @@ describe('freebird - Functional Check', function () {
         });
 
         it('should find device by permAddr', function (done) {
-            var findStub = sinon.stub(fb._devbox, 'find', function (callback) {
-                    if (callback(fakeDev))
-                        return fakeDev;
-                });
-
-            if (fb.findByNet('device', 'fakeNc1', '00:00:00:00:00') === fakeDev) {
-                findStub.restore();
+            if (fb.findByNet('device', 'fakeNc1', '00:00:00:00:00') === fakeDev)
                 done();
-            }
         });        
 
         it('should find gadget by auxId', function (done) {
-            var findStub = sinon.stub(fb._gadbox, 'find', function (callback) {                  
-                    if (callback(fakeGad))
-                        return fakeGad;
-                });
-
-            if (fb.findByNet('gadget', 'fakeNc1', '00:00:00:00:00', 'aa/bb') === fakeGad) {
-                findStub.restore();
+            if (fb.findByNet('gadget', 'fakeNc1', '00:00:00:00:00', 'aa/bb') === fakeGad)
                 done();
-            }
         });
     });
 
     describe('#filter(type, pred)', function () {
         it('should filter netcore by pred', function (done) {
-            if (fb.filter('netcore', function (nc) { return nc.getName() === 'fakeNc1'; })[0] === fakeNc)
+            var nc = fb.filter('netcore', function (nc) { 
+                    return nc.getName() === 'fakeNc1'; 
+                })[0];
+
+            if (nc === fakeNc)
                 done();
         });
 
         it('should filter device by pred', function (done) {
-            var predFunc = function () {},
-                filterStub = sinon.stub(fb._devbox, 'filter', function (callback) {
-                    if (callback === predFunc)
-                        filterStub.restore();
-                        done();
-                });
-
-            fb.filter('device', predFunc);
+            var dev = fb.filter('device', function (dev) { 
+                    return dev._id === 1; 
+                })[0];
+            
+            if (dev === fakeDev)
+                done();
         });        
 
         it('should filter gadget by pred', function (done) {
-            var predFunc = function () {},
-                filterStub = sinon.stub(fb._gadbox, 'filter', function (callback) {                  
-                    if (callback === predFunc)
-                        filterStub.restore();
-                        done();
-                });
+            var gad = fb.filter('gadget', function (gad) { 
+                    return gad._id === 1; 
+                })[0];
+            
+            if (gad === fakeGad)
+                done();
+        });
 
-            fb.filter('gadget', predFunc);
+        after(function(done) {            
+            fb.unregister('gadget', fakeGad, function (err, id) {
+                fb.unregister('device', fakeDev, function (err, id) {
+                    done();
+                });
+            });
         });
     });
 
@@ -358,15 +350,42 @@ describe('freebird - Functional Check', function () {
     });
 
     describe('#reset(mode, callback)', function () {
-        it('should reset netcore', function (done) {
+        before(function(done) {
+            fakeDev._recovering = false;
+            fb.register('device', fakeDev, function (err, id) {
+                fakeGad._recovering = false;
+                fb.register('gadget', fakeGad, function (err, id) {
+                    done();
+                });
+            });
+        });
+
+        it('should reset netcore with mode 0', function (done) {
             var resetStub = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
-                    if (mode === 0 && _.isFunction(callback)) {     
+                    if (mode === 0 && _.isFunction(callback)) { 
                         resetStub.restore();
                         callback();
                     }
                 });
 
             fb.reset(0, function (err) {
+                expect(fb.findById('device', 1)).to.be.equal(fakeDev);
+                expect(fb.findById('gadget', 1)).to.be.equal(fakeGad);
+                done();
+            });
+        });
+
+        it('should reset netcore with mode 1', function (done) {
+            var resetStub = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
+                    if (mode === 1 && _.isFunction(callback)) {     
+                        resetStub.restore();
+                        callback();
+                    }
+                });
+
+            fb.reset(1, function (err) {
+                expect(fb.findById('device', 1)).to.be.equal(undefined);
+                expect(fb.findById('gadget', 1)).to.be.equal(undefined);
                 done();
             });
         });
@@ -387,6 +406,14 @@ describe('freebird - Functional Check', function () {
 
             fbMultiNc.reset(0, function (err) {
                 done();
+            });
+        });
+
+        after(function(done) {            
+            fb.unregister('gadget', fakeGad, function (err, id) {
+                fb.unregister('device', fakeDev, function (err, id) {
+                    done();
+                });
             });
         });
     });
@@ -438,6 +465,13 @@ describe('freebird - Functional Check', function () {
                 done();
             });
         });
+
+        it('should has error if netcore is not exist', function (done) {
+            fb.remove('fakeNcxxx', '00:00:00:00:00', function (err) {
+                if (err)
+                    done();
+            });
+        });
     });
 
     describe('#ban(ncName, permAddr, callback)', function () {
@@ -453,6 +487,13 @@ describe('freebird - Functional Check', function () {
                 done();
             });
         });
+
+        it('should has error if netcore is not exist', function (done) {
+            fb.ban('fakeNcxxx', '00:00:00:00:00', function (err) {
+                if (err)
+                    done();
+            });
+        });
     });
 
     describe('#unban(ncName, permAddr, callback)', function () {
@@ -466,6 +507,13 @@ describe('freebird - Functional Check', function () {
 
             fb.unban('fakeNc1', '00:00:00:00:00', function (err) {
                 done();
+            });
+        });
+
+        it('should has error if netcore is not exist', function (done) {
+            fb.unban('fakeNcxxx', '00:00:00:00:00', function (err) {
+                if (err)
+                    done();
             });
         });
     });
@@ -491,6 +539,26 @@ describe('freebird - Functional Check', function () {
 
             });
         });
+
+        it('should has error if netcore is not exist', function (done) {
+            fb.ping('fakeNcxxx', '00:00:00:00:00', function (err) {
+                if (err)
+                    done();
+            });
+        });
+
+        it('should has error if device is not exist', function (done) {
+            fb.ping('fakeNc1', '00:00:00:00:xx', function (err) {
+                if (err)
+                    done();
+            });
+        });
+
+        after(function(done) {            
+            fb.unregister('device', fakeDev, function (err, id) {
+                done();
+            });
+        });
     });
 
     describe('#maintain(ncName, callback)', function () {
@@ -507,7 +575,20 @@ describe('freebird - Functional Check', function () {
             }); 
         });
 
-        it('should maintain multi netcore', function (done) {
+        it('should maintain multi netcore with ncName', function (done) {
+            var maintainStub = sinon.stub(fakeNc, 'maintain', function (callback) { 
+                    if (_.isFunction(callback)) {     
+                        maintainStub.restore();
+                        callback();
+                    }
+                });
+
+            fbMultiNc.maintain('fakeNc1', function (err) {
+                done();
+            }); 
+        });
+
+        it('should maintain multi netcore without ncName', function (done) {
             var maintainStub = sinon.stub(fakeNc, 'maintain', function (callback) { 
                     if (_.isFunction(callback)) {     
                         maintainStub.restore();
@@ -539,7 +620,17 @@ describe('freebird - Functional Check', function () {
     });    
 
     describe('#_tweet(subsys, indType, id, data)', function () {
-        it('should _tweet evt', function (done) {
+        it('should _tweet net evt', function (done) {
+            var indicateStub = sinon.stub(fb._apiAgent, 'indicate', function (ind) {
+                    if (_.isEqual(ind, {__intf: 'IND', subsys: 0, type: 'test', id: 1, data: 'test'}))
+                        indicateStub.restore();
+                        done();
+                });
+
+            fb._tweet('net', 'test', 1, 'test');
+        });
+
+        it('should _tweet dev evt', function (done) {
             var indicateStub = sinon.stub(fb._apiAgent, 'indicate', function (ind) {
                     if (_.isEqual(ind, {__intf: 'IND', subsys: 1, type: 'test', id: 1, data: 'test'}))
                         indicateStub.restore();
@@ -547,6 +638,16 @@ describe('freebird - Functional Check', function () {
                 });
 
             fb._tweet('dev', 'test', 1, 'test');
+        });
+
+        it('should _tweet gad evt', function (done) {
+            var indicateStub = sinon.stub(fb._apiAgent, 'indicate', function (ind) {
+                    if (_.isEqual(ind, {__intf: 'IND', subsys: 2, type: 'test', id: 1, data: 'test'}))
+                        indicateStub.restore();
+                        done();
+                });
+
+            fb._tweet('gad', 'test', 1, 'test');
         });
     });
 });
