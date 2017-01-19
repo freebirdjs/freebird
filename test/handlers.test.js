@@ -234,7 +234,7 @@ describe('Functional Check', function() {
                 tweetSpy.restore();
 
                 done();
-            }, 20);
+            }, 50);
         });
 
         it('should set divece info again and not emit event if device already exist', function (done) {
@@ -392,12 +392,13 @@ describe('Functional Check', function() {
                 expect(tweetSpy).to.be.calledOnce;
                 expect(tweetSpy).to.be.calledWith('gad', 'gadIncoming', gad.get('id'));
 
+                isJoinableStub.restore();
                 registerSpy.restore();
                 fireSpy.restore();
                 tweetSpy.restore();
 
                 done();
-            }, 20);
+            }, 30);
         });
 
         it('should update gadget info and not emit event if gadget already exist', function (done) {
@@ -468,7 +469,7 @@ describe('Functional Check', function() {
     });
 
     describe('#ncBannedDevIncoming', function () {
-        it('should foward event to upper layer', function () {
+        it('should foward event to upper layer if device not exist', function () {
             var msg = { ncName: 'fakeNc', permAddr: '0x999999', raw: {} },
                 fireSpy = sinon.spy(fb, '_fire'),
                 tweetSpy = sinon.spy(fb, '_tweet');
@@ -483,95 +484,827 @@ describe('Functional Check', function() {
             fireSpy.restore();
             tweetSpy.restore();
         });
+
+        it('should foward event to upper layer and remove if device exist', function (done) {
+            var isJoinableStub = sinon.stub(netcore, 'isJoinable').returns(true),
+                msg = { ncName: 'fakeNc', permAddr: 'tobermv', raw: {} },
+                ncRmvStub = sinon.stub(netcore, 'remove', function (perm, cb) { cb(null); }),
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            netcore._cookRawDev = function (devInst, rawDev, cb) {
+                devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                cb(null, devInst);
+            };
+
+            fb.emit(EVT_BTM.NcDevIncoming, msg);
+
+            setTimeout(function () {
+                var dev = fb.findByNet('device', msg.ncName, msg.permAddr);
+
+                fb.emit(EVT_BTM.NcBannedDevIncoming, msg);
+
+                setImmediate(function () {
+                    expect(fireSpy).to.be.calledTwice;
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_BAN_INCOMING, { ncName: 'fakeNc', permAddr: 'tobermv' });
+                    expect(tweetSpy).to.be.calledTwice;
+                    expect(tweetSpy).to.be.calledWith('dev', 'bannedDevIncoming', dev.get('id'), { netcore: 'fakeNc', permAddr: 'tobermv' });
+                    expect(ncRmvStub).to.be.calledOnce;
+                    expect(ncRmvStub).to.be.calledWith(msg.permAddr);
+
+                    isJoinableStub.restore();
+                    fireSpy.restore();
+                    tweetSpy.restore();
+                    ncRmvStub.restore();
+
+                    dev._removing = true;
+                    fb.emit(EVT_BTM.NcDevLeaving, { ncName: msg.ncName, permAddr: msg.permAddr });
+
+                    setTimeout(function () { done(); }, 5);
+                });
+            }, 20);
+        });
     });
 
     describe('#ncBannedDevReporting', function () {
+        it('should foward event to upper layer if device not exist', function () {
+            var msg = { ncName: 'fakeNc', permAddr: '0x999999', raw: {} },
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.NcBannedDevReporting, msg);
+
+            expect(fireSpy).to.be.calledOnce;
+            expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_BAN_REPORTING, { ncName: 'fakeNc', permAddr: '0x999999' });
+            expect(tweetSpy).to.be.calledOnce;
+            expect(tweetSpy).to.be.calledWith('dev', 'bannedDevReporting', 0, { netcore: 'fakeNc', permAddr: '0x999999' });
+
+            fireSpy.restore();
+            tweetSpy.restore();
+        });
+
+        it('should foward event to upper layer and remove if device exist', function (done) {
+            var isJoinableStub = sinon.stub(netcore, 'isJoinable').returns(true),
+                incomeMsg = { ncName: 'fakeNc', permAddr: 'tobermv', raw: {} },
+                rptMsg = { ncName: 'fakeNc', permAddr: 'tobermv', data: {} },
+                ncRmvStub = sinon.stub(netcore, 'remove', function (perm, cb) { cb(null); }),
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            netcore._cookRawDev = function (devInst, rawDev, cb) {
+                devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                cb(null, devInst);
+            };
+
+            fb.emit(EVT_BTM.NcDevIncoming, incomeMsg);
+
+            setTimeout(function () {
+                var dev = fb.findByNet('device', rptMsg.ncName, rptMsg.permAddr);
+
+                fb.emit(EVT_BTM.NcBannedDevReporting, rptMsg);
+
+                setImmediate(function () {
+                    expect(fireSpy).to.be.calledTwice;
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_BAN_REPORTING, { ncName: 'fakeNc', permAddr: 'tobermv' });
+                    expect(tweetSpy).to.be.calledTwice;
+                    expect(tweetSpy).to.be.calledWith('dev', 'bannedDevReporting', dev.get('id'), { netcore: 'fakeNc', permAddr: 'tobermv' });
+                    expect(ncRmvStub).to.be.calledOnce;
+                    expect(ncRmvStub).to.be.calledWith(rptMsg.permAddr);
+
+                    isJoinableStub.restore();
+                    fireSpy.restore();
+                    tweetSpy.restore();
+                    ncRmvStub.restore();
+
+                    dev._removing = true;
+                    fb.emit(EVT_BTM.NcDevLeaving, { ncName: rptMsg.ncName, permAddr: rptMsg.permAddr });
+
+                    setTimeout(function () { done(); }, 5);
+                });
+            }, 10);
+        });
     });
 
     describe('#ncBannedGadIncoming', function () {
+        var msg = { ncName: 'fakeNc', permAddr: '0x123456', auxId: '999', raw: {} },
+            bannedMsg1 = { ncName: 'fakeNc', permAddr: '0x123456', auxId: '999' },
+            bannedMsg2 = { netcore: 'fakeNc', permAddr: '0x123456', auxId: '999' };
 
+        it('should foward event to upper layer if gadget not exist', function () {
+            var fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.NcBannedGadIncoming, msg);
+
+            expect(fireSpy).to.be.calledOnce;
+            expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_BAN_INCOMING, bannedMsg1);
+            expect(tweetSpy).to.be.calledOnce;
+            expect(tweetSpy).to.be.calledWith('gad', 'bannedGadIncoming', 0, bannedMsg2);
+
+            fireSpy.restore();
+            tweetSpy.restore();
+        });
+
+        it('should foward event to upper layer and remove if gadget exist', function (done) {
+            var isJoinableStub = sinon.stub(netcore, 'isJoinable').returns(true),
+                fbUnregisterSpy = sinon.spy(fb, 'unregister'),
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            netcore._cookRawGad = function (gadInst, rawGad, cb) {
+                gadInst._auxId = '999';
+                cb(null, gadInst);
+            };
+
+            fb.emit(EVT_BTM.NcGadIncoming, msg);
+
+            setTimeout(function () {
+                var gad = fb.findByNet('gadget', msg.ncName, msg.permAddr, msg.auxId),
+                    gadId = gad.get('id'),
+                    leavingMsg = _.cloneDeep(bannedMsg1);
+
+                leavingMsg.id = gadId;
+
+                fb.emit(EVT_BTM.NcBannedGadIncoming, msg);
+
+                setTimeout(function () {
+                    expect(fbUnregisterSpy).to.be.calledOnce;
+                    expect(fbUnregisterSpy).to.be.calledWith('gadget', gad);
+                    expect(fireSpy).to.be.calledThrice;
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_BAN_INCOMING, bannedMsg1);
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_LEAVING, leavingMsg);
+                    expect(tweetSpy).to.be.calledThrice;
+                    expect(tweetSpy).to.be.calledWith('gad', 'bannedGadIncoming', gadId, bannedMsg2);
+                    expect(tweetSpy).to.be.calledWith('gad', 'gadLeaving', gadId, bannedMsg2);
+
+                    isJoinableStub.restore();
+                    fireSpy.restore();
+                    tweetSpy.restore();
+                    fbUnregisterSpy.restore();
+
+                    done();
+                }, 10);
+            }, 10);
+        });
     });
 
     describe('#ncBannedGadReporting', function () {
+        var msg = { ncName: 'fakeNc', permAddr: '0x123456', auxId: '999', attrs: {} },
+            bannedMsg1 = { ncName: 'fakeNc', permAddr: '0x123456', auxId: '999' },
+            bannedMsg2 = { netcore: 'fakeNc', permAddr: '0x123456', auxId: '999' };
 
+        it('should foward event to upper layer if gadget not exist', function () {
+            var fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.NcBannedGadReporting, msg);
+
+            expect(fireSpy).to.be.calledOnce;
+            expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_BAN_REPORTING, bannedMsg1);
+            expect(tweetSpy).to.be.calledOnce;
+            expect(tweetSpy).to.be.calledWith('gad', 'bannedGadReporting', 0, bannedMsg2);
+
+            fireSpy.restore();
+            tweetSpy.restore();
+        });
+
+        it('should foward event to upper layer and remove if gadget exist', function (done) {
+            var isJoinableStub = sinon.stub(netcore, 'isJoinable').returns(true),
+                fbUnregisterSpy = sinon.spy(fb, 'unregister'),
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            netcore._cookRawGad = function (gadInst, rawGad, cb) {
+                gadInst._auxId = '999';
+                cb(null, gadInst);
+            };
+
+            fb.emit(EVT_BTM.NcGadIncoming, msg);
+
+            setTimeout(function () {
+                var gad = fb.findByNet('gadget', msg.ncName, msg.permAddr, msg.auxId),
+                    gadId = gad.get('id'),
+                    leavingMsg = _.cloneDeep(bannedMsg1);
+
+                leavingMsg.id = gadId;
+
+                fb.emit(EVT_BTM.NcBannedGadReporting, msg);
+
+                setTimeout(function () {
+                    expect(fbUnregisterSpy).to.be.calledOnce;
+                    expect(fbUnregisterSpy).to.be.calledWith('gadget', gad);
+                    expect(fireSpy).to.be.calledThrice;
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_BAN_REPORTING, bannedMsg1);
+                    expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_LEAVING, leavingMsg);
+                    expect(tweetSpy).to.be.calledThrice;
+                    expect(tweetSpy).to.be.calledWith('gad', 'bannedGadReporting', gadId, bannedMsg2);
+                    expect(tweetSpy).to.be.calledWith('gad', 'gadLeaving', gadId, bannedMsg2);
+
+                    isJoinableStub.restore();
+                    fireSpy.restore();
+                    tweetSpy.restore();
+                    fbUnregisterSpy.restore();
+
+                    done();
+                }, 10);
+            }, 10);
+        });
     });
 
     describe('#devError', function () {
+        it('should call _fire and _tweet to foward event', function () {
+            var msg = {
+                    ncName: 'fakeNc',
+                    error: new Error('An error occured.'),
+                    id: 6
+                },
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.DevError, msg);
+
+            expect(fireSpy).to.be.calledOnce;
+            expect(fireSpy).to.be.calledWith('warn', msg.error);
+            expect(tweetSpy).to.be.calledOnce;
+            expect(tweetSpy).to.be.calledWith('dev', 'error', msg.id, { netcore: msg.ncName, message: msg.error.message });
+
+            fireSpy.restore();
+            tweetSpy.restore();
+        });
     });
 
     describe('#devNetChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456');
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        maySleep: true,
+                        address: {
+                            dynamic: 50
+                        }
+                    }
+                },
+                error = new Error('error');
+                modifyStub = sinon.stub(fb._devbox, 'modify', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.DevNetChanged, msg);
+
+            setImmediate(function () {
+                expect(modifyStub).to.be.calledOnce;
+                expect(modifyStub).to.be.calledWith(msg.id, 'net', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                modifyStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit netChanged event if modify success', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        maySleep: true,
+                        address: {
+                            dynamic: 50
+                        }
+                    }
+                },
+                modifySpy = sinon.spy(fb._devbox, 'modify'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.DevNetChanged, msg);
+
+            setTimeout(function () {
+                expect(modifySpy).to.be.calledOnce;
+                expect(modifySpy).to.be.calledWith(msg.id, 'net', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_NET_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'netChanged', msg.id, msg.data);
+
+                modifySpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 20);
+        });
+
+        it('should emit statusChanged event if status changed', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456');
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        status: 'offline'
+                    }
+                },
+                modifyStub = sinon.stub(fb._devbox, 'modify', function (i, n, d, cb) {
+                    cb(null);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.DevNetChanged, msg);
+
+            setImmediate(function () {
+                expect(modifyStub).to.be.calledOnce;
+                expect(modifyStub).to.be.calledWith(msg.id, 'net', msg.data);
+                expect(fireSpy).to.be.calledTwice;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_NET_CHANGED, msg);
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_STATUS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledTwice;
+                expect(tweetSpy).to.be.calledWith('dev', 'netChanged', msg.id, msg.data);
+                expect(tweetSpy).to.be.calledWith('dev', 'statusChanged', msg.id, msg.data);
+
+                modifyStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
     });
 
     describe('#devPropsChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456');
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        name: 'test',
+                        location: 'home'
+                    }
+                },
+                error = new Error('error');
+                replaceStub = sinon.stub(fb._devbox, 'replace', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.DevPropsChanged, msg);
+
+            setImmediate(function () {
+                expect(replaceStub).to.be.calledOnce;
+                expect(replaceStub).to.be.calledWith(msg.id, 'props', dev.get('props'));
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                replaceStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit propsChanged event if modify success', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        name: 'test',
+                        location: 'home'
+                    }
+                },
+                replaceSpy = sinon.spy(fb._devbox, 'replace'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            dev.set('props', msg.data)
+
+            fb.emit(EVT_BTM.DevPropsChanged, msg);
+
+            setTimeout(function () {
+                expect(replaceSpy).to.be.calledOnce;
+                expect(replaceSpy).to.be.calledWith(msg.id, 'props', dev.get('props'));
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_PROPS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'propsChanged', msg.id, msg.data);
+
+                replaceSpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
     describe('#devAttrsChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456');
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        manufacturer: 'sivann',
+                        modle: 'xx'
+                    }
+                },
+                error = new Error('error');
+                modifyStub = sinon.stub(fb._devbox, 'modify', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.DevAttrsChanged, msg);
+
+            setImmediate(function () {
+                expect(modifyStub).to.be.calledOnce;
+                expect(modifyStub).to.be.calledWith(msg.id, 'attrs', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                modifyStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit attrsChanged event if modify success', function (done) {
+            var dev = fb.findByNet('device', 'fakeNc', '0x123456'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    id: dev.get('id'),
+                    data: {
+                        manufacturer: 'sivann',
+                        model: 'xx'
+                    }
+                },
+                modifySpy = sinon.spy(fb._devbox, 'modify'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.DevAttrsChanged, msg);
+
+            setTimeout(function () {
+                expect(modifySpy).to.be.calledOnce;
+                expect(modifySpy).to.be.calledWith(msg.id, 'attrs', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_ATTRS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('dev', 'attrsChanged', msg.id, msg.data);
+
+                modifySpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
     describe('#gadError', function () {
+        it('should call _fire and _tweet to foward event', function () {
+            var msg = {
+                    ncName: 'fakeNc',
+                    error: new Error('An error occured.'),
+                    id: 6
+                };
 
+            var fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.GadError, msg);
+
+            expect(fireSpy).to.be.calledOnce;
+            expect(fireSpy).to.be.calledWith('warn', msg.error);
+            expect(tweetSpy).to.be.calledOnce;
+            expect(tweetSpy).to.be.calledWith('gad', 'error', msg.id, { netcore: msg.ncName, message: msg.error.message });
+
+            fireSpy.restore();
+            tweetSpy.restore();
+        });
     });
 
     describe('#gadPanelChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var gad = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: gad.get('id'),
+                    data: {
+                        classId: 'xxx',
+                    }
+                },
+                error = new Error('error');
+                modifyStub = sinon.stub(fb._gadbox, 'modify', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.GadPanelChanged, msg);
+
+            setImmediate(function () {
+                expect(modifyStub).to.be.calledOnce;
+                expect(modifyStub).to.be.calledWith(msg.id, 'panel', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                modifyStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit panelChanged event if modify success', function (done) {
+            var dev = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: dev.get('id'),
+                    data: {
+                        classId: 'xxx',
+                    }
+                },
+                modifySpy = sinon.spy(fb._gadbox, 'modify'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.GadPanelChanged, msg);
+
+            setTimeout(function () {
+                expect(modifySpy).to.be.calledOnce;
+                expect(modifySpy).to.be.calledWith(msg.id, 'panel', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_PANEL_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'panelChanged', msg.id, msg.data);
+
+                modifySpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
     describe('#gadPropsChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var gad = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: gad.get('id'),
+                    data: {
+                        name: 'test',
+                        description: 'for test'
+                    }
+                },
+                error = new Error('error');
+                replaceStub = sinon.stub(fb._gadbox, 'replace', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.GadPropsChanged, msg);
+
+            setImmediate(function () {
+                expect(replaceStub).to.be.calledOnce;
+                expect(replaceStub).to.be.calledWith(msg.id, 'props', gad.get('props'));
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                replaceStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit propsChanged event if modify success', function (done) {
+            var gad = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: gad.get('id'),
+                    data: {
+                        name: 'test',
+                        description: 'for test'
+                    }
+                },
+                replaceSpy = sinon.spy(fb._gadbox, 'replace'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            gad.set('props', msg.data)
+
+            fb.emit(EVT_BTM.GadPropsChanged, msg);
+
+            setTimeout(function () {
+                expect(replaceSpy).to.be.calledOnce;
+                expect(replaceSpy).to.be.calledWith(msg.id, 'props', gad.get('props'));
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_PROPS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'propsChanged', msg.id, msg.data);
+
+                replaceSpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
     describe('#gadAttrsChanged', function () {
+        it('should emit error event if an error occurred when modify', function (done) {
+            var gad = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: gad.get('id'),
+                    data: {
+                        onOff: false
+                    }
+                },
+                error = new Error('error');
+                modifyStub = sinon.stub(fb._gadbox, 'modify', function (i, n, d, cb) {
+                    cb(error);
+                }),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.GadAttrsChanged, msg);
+
+            setImmediate(function () {
+                expect(modifyStub).to.be.calledOnce;
+                expect(modifyStub).to.be.calledWith(msg.id, 'attrs', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith('warn', error);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'error', msg.id, { netcore: msg.ncName, message: error.message });
+
+                modifyStub.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            });
+        });
+
+        it('should emit attrsChanged event if modify success', function (done) {
+            var dev = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: dev.get('id'),
+                    data: {}
+                },
+                modifySpy = sinon.spy(fb._gadbox, 'modify'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
+
+            fb.emit(EVT_BTM.GadAttrsChanged, msg);
+
+            setTimeout(function () {
+                expect(modifySpy).to.be.calledOnce;
+                expect(modifySpy).to.be.calledWith(msg.id, 'attrs', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_ATTRS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'attrsChanged', msg.id, msg.data);
+
+                modifySpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
     describe('#gadAttrsAppend', function () {
+        it('should emit attrsChanged event if modify success', function (done) {
+            var dev = fb.findByNet('gadget', 'fakeNc', '0x123456', '123'),
+                msg = {
+                    ncName: 'fakeNc',
+                    permAddr: '0x123456',
+                    auxId: '123',
+                    id: dev.get('id'),
+                    data: {
+                        onOff: false
+                    }
+                },
+                replaceSpy = sinon.spy(fb._gadbox, 'replace'),
+                fireSpy = sinon.spy(fb, '_fire');
+                tweetSpy = sinon.spy(fb, '_tweet');
 
+            fb.emit(EVT_BTM.GadAttrsAppend, msg);
+
+            setTimeout(function () {
+                expect(replaceSpy).to.be.calledOnce;
+                expect(replaceSpy).to.be.calledWith(msg.id, 'attrs', msg.data);
+                expect(fireSpy).to.be.calledOnce;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_ATTRS_CHANGED, msg);
+                expect(tweetSpy).to.be.calledOnce;
+                expect(tweetSpy).to.be.calledWith('gad', 'attrsChanged', msg.id, msg.data);
+
+                replaceSpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
+
+                done();
+            }, 10);
+        });
     });
 
-    // describe('#ncDevLeaving', function () {
-    //     var msg = {
-    //             ncName: 'fakeNc',
-    //             permAddr: '0x123456'
-    //         };
+    describe('#ncDevLeaving', function () {
+        var msg = {
+                ncName: 'fakeNc',
+                permAddr: '0x123456'
+            };
 
-    //     it('should change device status to offline', function () {
-    //         var dev = fb.findByNet('device', msg.ncName, msg.permAddr);
+        it('should change device status to offline', function () {
+            var dev = fb.findByNet('device', msg.ncName, msg.permAddr);
 
-    //         fb.emit(EVT_BTM.NcDevLeaving, msg);
+            fb.emit(EVT_BTM.NcDevLeaving, msg);
 
-    //         expect(dev.get('net').status).to.be.equal('offline');
-    //     });
+            expect(dev.get('net').status).to.be.equal('offline');
+        });
 
-    //     it('should remove device from freebird if _removing flag of device is true', function (done) {
-    //         var fbUnregisterSpy = sinon.spy(fb, 'unregister'),
-    //             fireSpy = sinon.spy(fb, '_fire'),
-    //             tweetSpy = sinon.spy(fb, '_tweet'),
-    //             dev = fb.findByNet('device', msg.ncName, msg.permAddr),
-    //             devId = dev.get('id');
+        it('should remove device and gadgets from freebird if _removing flag of device is true', function (done) {
+            var fbUnregisterSpy = sinon.spy(fb, 'unregister'),
+                fireSpy = sinon.spy(fb, '_fire'),
+                tweetSpy = sinon.spy(fb, '_tweet'),
+                dev = fb.findByNet('device', msg.ncName, msg.permAddr),
+                devId = dev.get('id'),
+                gad = fb.findByNet('gadget', msg.ncName, msg.permAddr, '123'),
+                gadId = gad.get('id');
 
-    //         dev._removing = true;
+            dev._removing = true;
 
-    //         fb.emit(EVT_BTM.NcDevLeaving, msg);
+            fb.emit(EVT_BTM.NcDevLeaving, msg);
 
-    //         setTimeout(function () {
-    //             expect(fbUnregisterSpy).to.be.calledOnce;
-    //             expect(fbUnregisterSpy).to.be.calledWith('device', dev);
-    //             expect(fireSpy).to.be.calledOnce;
-    //             expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_LEAVING, { ncName: msg.ncName, permAddr: msg.permAddr, id: devId });
-    //             expect(tweetSpy).to.be.callCount;
-    //             expect(tweetSpy).to.be.calledWith('dev', 'devLeaving', devId, { netcore: msg.ncName, permAddr: msg.permAddr });
+            setTimeout(function () {
+                expect(fbUnregisterSpy).to.be.calledTwice;
+                expect(fbUnregisterSpy).to.be.calledWith('device', dev);
+                expect(fbUnregisterSpy).to.be.calledWith('gadget', gad);
+                expect(fireSpy).to.be.calledTwice;
+                expect(fireSpy).to.be.calledWith(EVT_TOP.DEV_LEAVING, { ncName: msg.ncName, permAddr: msg.permAddr, id: devId });
+                expect(fireSpy).to.be.calledWith(EVT_TOP.GAD_LEAVING, { ncName: msg.ncName, permAddr: msg.permAddr, auxId: '123', id: gadId });
+                expect(tweetSpy).to.be.calledTwice;
+                expect(tweetSpy).to.be.calledWith('dev', 'devLeaving', devId, { netcore: msg.ncName, permAddr: msg.permAddr });
+                expect(tweetSpy).to.be.calledWith('gad', 'gadLeaving', gadId, { netcore: msg.ncName, permAddr: msg.permAddr, auxId: '123' });
 
-    //             fbUnregisterSpy.restore();
-    //             fireSpy.restore();
-    //             tweetSpy.restore();
+                fbUnregisterSpy.restore();
+                fireSpy.restore();
+                tweetSpy.restore();
 
-    //             done();
-    //         }, 10);
-    //     });
-    // });
+                done();
+            }, 10);
+        });
+    });
 });
