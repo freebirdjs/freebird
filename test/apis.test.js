@@ -1,15 +1,101 @@
+var EventEmitter = require('events'),
+    fb = new EventEmitter();
+
 var chai = require('chai'),
     expect = chai.expect,
+    sinon = require('sinon'),
     _ = require('busyman'),
     RPC = require('freebird-constants').RPC;
 
-var rpcApis = require('../lib/rpc/apis');
+var rpcApis = require('../lib/rpc/apis'),
+    FBase = require('freebird-base');
 
-var fb = {
-    findById: function () { 
-        return 5; 
+var zCore = FBase.createNetcore('zCore', {}, { phy: 'ieee802.15.4', nwk: 'zigbee' }),
+    mCore = FBase.createNetcore('mCore', {}, { phy: 'ieee802', nwk: 'ip' });
+
+var zDev1 = FBase.createDevice(zCore, {}),
+    zDev2 = FBase.createDevice(zCore, {}),
+    zDev3 = FBase.createDevice(zCore, {}),
+    mDev1 = FBase.createDevice(mCore, {});
+
+var zGad1 = FBase.createGadget(zDev1, '1/temperature', {}),
+    zGad2 = FBase.createGadget(zDev1, '2/humidity.', {}),
+    zGad3 = FBase.createGadget(zDev2, '1/lightCtrl', {}),
+    mGad1 = FBase.createGadget(mDev1, '1/lightCtrl', {});
+
+zDev1.set('net', { address: { permanent: '0x1234567890' } });
+zDev1.set('_id', 1);
+zDev2.set('_id', 2);
+zDev3.set('_id', 3);
+mDev1.set('_id', 6);
+
+zGad1.set('_id', 1);
+zGad2.set('_id', 3);
+zGad3.set('_id', 5);
+mGad1.set('_id', 7);
+
+fb._netcores = [ zCore, mCore ];
+fb._devices = [zDev1, zDev2, zDev3, mDev1];
+fb._gadgets = [zGad1, zGad2, zGad3, mGad1];
+
+fb._devbox = {
+    exportAllIds: function () {
+        return _.map(fb._devices, function (dev) {
+            return dev.get('id');
+        });
+    },
+    filter: function (path) {
+        return _.filter(fb._devices, path);
     }
 };
+
+fb._gadbox = {
+    exportAllIds: function () {
+        return _.map(fb._gadgets, function (gad) {
+            return gad.get('id');
+        });
+    },
+    filter: function (path) {
+        return _.filter(fb._gadgets, path);
+    }
+};
+
+fb.findById = function (type, id) {
+    if (type === 'netcore')
+        return _.find(fb._netcores, function (nc) {
+            return nc.getName() === id;
+        });
+    else if (type === 'device')
+        return _.find(fb._devices, function (dev) {
+            return dev.get('id') === id;
+        });
+    else if (type === 'gadget')
+        return _.find(fb._gadgets, function (gad) {
+            return gad.get('id') === id;
+        });
+};
+
+fb.findByNet = function (type, ncName, permAddr) {
+    if (type === 'netcore')
+        return _.find(fb._netcores, function (nc) {
+            return nc.getName() === ncName;
+        });
+    else if (type === 'device')
+        return _.find(fb._devices, function (dev) {
+            return (dev.get('permAddr') === permAddr) && (dev.get('netcore').getName() === ncName);
+        });
+};
+
+fb._fire = function (evt, data) {
+    var self = this;
+    setImmediate(function () {
+        self.emit(evt, data);
+    });
+};
+
+fb.permitJoin = function (duration, callback) {};
+fb.reset = function (mode, callback) {};
+fb.maintain = function (ncName, callback) {};
 
 describe('APIs - signature checks', function() {
     var apiNames = {
@@ -377,8 +463,6 @@ describe('APIs - signature checks', function() {
             rpcApis.devEnable({ id: null }, cb);
         });
     });
-
-    
 
     describe('#disable(args, callback)', function () {
         it('should has error if args.id is not number', function (done) {
@@ -756,7 +840,1117 @@ describe('APIs - signature checks', function() {
             rpcApis.gadSetProps({ id: 'xxx', props: null }, cb);
         });
     });
+});
 
+describe('APIs - methods checks', function() {
+    for (var rpcApi in rpcApis) {
+        rpcApis[rpcApi] = rpcApis[rpcApi].bind(fb);
+    }
+
+    describe('#.getAllDevIds', function() {
+        it('if args.ncName === undefined', function (done) {
+            rpcApis.getAllDevIds({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: [ 1, 2, 3, 6 ],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.getAllDevIds({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\'', function (done) {
+            rpcApis.getAllDevIds({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: [ 1, 2, 3 ],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+    });
+
+    describe('#.getAllGadIds', function() {
+        it('if args.ncName === undefined', function (done) {
+            rpcApis.getAllGadIds({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: [ 1, 3, 5, 7 ],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.getAllGadIds({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\'', function (done) {
+            rpcApis.getAllGadIds({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    ids: [ 1, 3, 5 ],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+    });
+
+    describe('#.getDevs', function() {
+        it('if args.ids === [ 1, 3, 6 ]', function (done) {
+            rpcApis.getDevs({ ids: [ 1, 3, 6 ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.devs[0].id === 1 && data.devs[1].id === 3 && data.devs[2].id === 6)
+                    done();
+            });
+        });
+
+        it('if args.ids === [ 4, 6 ]', function (done) {
+            rpcApis.getDevs({ ids: [ 4, 6 ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.devs[0] === null && data.devs[1].id === 6)
+                    done();
+            });
+        });
+    });
+
+    describe('#.getGads', function() {
+        it('if args.ids === [ 3, 5, 7 ]', function (done) {
+            rpcApis.getGads({ ids: [ 3, 5, 7 ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.gads[0].id === 3 && data.gads[1].id === 5 && data.gads[2].id === 7)
+                    done();
+            });
+        });
+
+        it('if args.ids === [ 4, 6 ]', function (done) {
+            rpcApis.getGads({ ids: [ 4, 6 ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.gads[0] === null && data.gads[1] === null)
+                    done();
+            });
+        });
+    });
+
+    describe('#.getNetcores', function() {
+        it('if args.ncNames === undefined', function (done) {
+            rpcApis.getNetcores({}, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.netcores[0].name === 'zCore' && data.netcores[1].name === 'mCore')
+                    done();
+            });
+        });
+
+        it('if args.ncNames === [ \'mCore\' ]', function (done) {
+            rpcApis.getNetcores({ ncNames: [ 'mCore' ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.netcores[0].name === 'mCore')
+                    done();
+            });
+        });
+
+        it('if args.ncNames === [ \'no_such_netCore\' ]', function (done) {
+            rpcApis.getNetcores({ ncNames: [ 'no_such_netCore' ] }, function (err, data) {
+
+                if (!err && data.id === 0 && data.status === RPC.Status.Content &&
+                    data.netcores[0] === null)
+                    done();
+            });
+        });
+    });
+
+    describe('#.getBlacklist', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.getBlacklist({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    list: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'mCore\' ]', function (done) {
+            rpcApis.getBlacklist({ ncName: 'mCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    list: [],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            zCore._block('0x1234567890')._block('0x1357997531');
+            rpcApis.getBlacklist({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    list: [ '0x1234567890', '0x1357997531' ],
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    zCore._unblock('0x1234567890')._unblock('0x1357997531');
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], throw Error', function (done) {
+            var nc_getBlacklistStub = sinon.stub(zCore, 'getBlacklist', function () {
+                throw new Error('catchError');
+            });
+
+            rpcApis.getBlacklist({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    list: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'catchError' && _.isEqual(data, fakeData)) {
+                    nc_getBlacklistStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.permitJoin', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.permitJoin({ ncName: 'no_such_netCore', duration: 180 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], error', function (done) {
+            var nc_permitJoinStub = sinon.stub(zCore, 'permitJoin', function (duration, callback) {
+                process.nextTick(function () {
+                    callback(new Error('PermitJoin fail'));
+                });
+            });
+
+            rpcApis.permitJoin({ ncName: 'zCore', duration: 180 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'PermitJoin fail' && _.isEqual(data, fakeData)) {
+                    nc_permitJoinStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            var nc_permitJoinStub = sinon.stub(zCore, 'permitJoin', function (duration, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.permitJoin({ ncName: 'zCore', duration: 180 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_permitJoinStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined, error', function (done) {
+            var fb_permitJoinStub = sinon.stub(fb, 'permitJoin', function (duration, callback) {
+                process.nextTick(function () {
+                    callback(new Error('PermitJoin fails'));
+                });
+            });
+
+            rpcApis.permitJoin({ duration: 180 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'PermitJoin fails' && _.isEqual(data, fakeData)) {
+                    fb_permitJoinStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined', function (done) {
+            var fb_permitJoinStub = sinon.stub(fb, 'permitJoin', function (duration, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.permitJoin({ duration: 180 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    fb_permitJoinStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.reset', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.reset({ ncName: 'no_such_netCore', mode: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], error', function (done) {
+            var nc_resetStub = sinon.stub(zCore, 'reset', function (mode, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Reset fail'));
+                });
+            });
+
+            rpcApis.reset({ ncName: 'zCore', mode: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Reset fail' && _.isEqual(data, fakeData)) {
+                    nc_resetStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            var nc_resetStub = sinon.stub(zCore, 'reset', function (mode, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.reset({ ncName: 'zCore', mode: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_resetStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined, error', function (done) {
+            var fb_resetStub = sinon.stub(fb, 'reset', function (mode, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Reset fails'));
+                });
+            });
+
+            rpcApis.reset({ mode: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Reset fails' && _.isEqual(data, fakeData)) {
+                    fb_resetStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined', function (done) {
+            var fb_resetStub = sinon.stub(fb, 'reset', function (mode, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.reset({ mode: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    fb_resetStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.enable', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.enable({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            rpcApis.enable({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], throw Error', function (done) {
+            var nc_enableStub = sinon.stub(zCore, 'enable', function () {
+                throw new Error('catchError');
+            });
+
+            rpcApis.enable({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'catchError' && _.isEqual(data, fakeData)) {
+                    nc_enableStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined', function (done) {
+            rpcApis.enable({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined and mCore throw Error', function (done) {
+            var nc_enableStub = sinon.stub(mCore, 'enable', function () {
+                    throw new Error('catchError');
+                }),
+                warned = false,
+                cbCalled = false;
+
+            fb.once('warn', function (err) {
+                if (err.message === 'catchError') {
+                    warned = true;
+                    if (cbCalled)
+                        done();
+                }
+            });
+
+            rpcApis.enable({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_enableStub.restore();
+                    cbCalled = true;
+                    if (warned)
+                        done();
+                }
+            });
+        });
+    });
+
+    describe('#.disable', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.disable({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            rpcApis.disable({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], throw Error', function (done) {
+            var nc_disableStub = sinon.stub(zCore, 'disable', function () {
+                throw new Error('catchError');
+            });
+
+            rpcApis.disable({ ncName: 'zCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'catchError' && _.isEqual(data, fakeData)) {
+                    nc_disableStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined', function (done) {
+            rpcApis.disable({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined and mCore throw Error', function (done) {
+            var nc_disableStub = sinon.stub(mCore, 'disable', function () {
+                    throw new Error('catchError');
+                }),
+                warned = false,
+                cbCalled = false;
+
+            fb.once('warn', function (err) {
+                if (err.message === 'catchError') {
+                    warned = true;
+                    if (cbCalled)
+                        done();
+                }
+            });
+
+            rpcApis.disable({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_disableStub.restore();
+                    cbCalled = true;
+                    if (warned)
+                        done();
+                }
+            });
+        });
+    });
+
+    describe('#.ban', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.ban({ ncName: 'no_such_netCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], error', function (done) {
+            var nc_banStub = sinon.stub(zCore, 'ban', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Ban fail'));
+                });
+            });
+
+            rpcApis.ban({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Ban fail' && _.isEqual(data, fakeData)) {
+                    nc_banStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            var nc_banStub = sinon.stub(zCore, 'ban', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.ban({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_banStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.unban', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.unban({ ncName: 'no_such_netCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ], error', function (done) {
+            var nc_unbanStub = sinon.stub(zCore, 'unban', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Ban fail'));
+                });
+            });
+
+            rpcApis.unban({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Ban fail' && _.isEqual(data, fakeData)) {
+                    nc_unbanStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === [ \'zCore\' ]', function (done) {
+            var nc_unbanStub = sinon.stub(zCore, 'unban', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.unban({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_unbanStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.remove', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.remove({ ncName: 'no_such_netCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    permAddr: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\' and device not found', function (done) {
+            rpcApis.remove({ ncName: 'zCore', permAddr: '0x0000000001' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    permAddr: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\', error', function (done) {
+            var nc_removeStub = sinon.stub(zCore, 'remove', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Remove fail'));
+                });
+            });
+
+            rpcApis.remove({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    permAddr: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Remove fail' && _.isEqual(data, fakeData)){
+                    nc_removeStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === \'zCore\'', function (done) {
+            var nc_removeStub = sinon.stub(zCore, 'remove', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(null, permAddr);
+                });
+            });
+
+            rpcApis.remove({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    permAddr: '0x1234567890',
+                    status: RPC.Status.Deleted
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_removeStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.ping', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.ping({ ncName: 'no_such_netCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    time: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\' and device not found', function (done) {
+            rpcApis.ping({ ncName: 'zCore', permAddr: '0x0000000001' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    time: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === \'zCore\', error', function (done) {
+            var nc_pingStub = sinon.stub(zCore, 'ping', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Ping fail'));
+                });
+            });
+
+            zCore.enable();
+            zDev1.enable();
+            rpcApis.ping({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    time: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Ping fail' && _.isEqual(data, fakeData)){
+                    nc_pingStub.restore();
+                    zDev1.disable();
+                    zCore.disable();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === \'zCore\'', function (done) {
+            var nc_pingStub = sinon.stub(zCore, 'ping', function (permAddr, callback) {
+                process.nextTick(function () {
+                    callback(null, 10);
+                });
+            });
+
+            zCore.enable();
+            zDev1.enable();
+            rpcApis.ping({ ncName: 'zCore', permAddr: '0x1234567890' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    time: 10,
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    nc_pingStub.restore();
+                    zDev1.disable();
+                    zCore.disable();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.maintain', function() {
+        it('if args.ncName === \'no_such_netCore\'', function (done) {
+            rpcApis.maintain({ ncName: 'no_such_netCore' }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.ncName === undefined, error', function (done) {
+            var fb_maintainStub = sinon.stub(fb, 'maintain', function (ncName, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Maintain fails'));
+                });
+            });
+
+            rpcApis.maintain({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Maintain fails' && _.isEqual(data, fakeData)) {
+                    fb_maintainStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.ncName === undefined', function (done) {
+            var fb_maintainStub = sinon.stub(fb, 'maintain', function (ncName, callback) {
+                process.nextTick(function () {
+                    callback(null);
+                });
+            });
+
+            rpcApis.maintain({}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    fb_maintainStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    /***********************************************/
+    /*** Device APIs                             ***/
+    /***********************************************/
+    describe('#.devEnable', function() {
+        it('if args.id === 0, no_such_device', function (done) {
+            rpcApis.devEnable({ id: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    enabled: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.id === 1', function (done) {
+            rpcApis.devEnable({ id: 1 }, function (err, data) {
+                var fakeData = {
+                    id: 1,
+                    enabled: true,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.id === 2, throw Error', function (done) {
+            var devEnableStub = sinon.stub(zDev2, 'enable', function () {
+                throw new Error('catchError');
+            });
+
+            rpcApis.devEnable({ id: 2 }, function (err, data) {
+                var fakeData = {
+                    id: 2,
+                    enabled: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'catchError' && _.isEqual(data, fakeData)) {
+                    devEnableStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.devDisable', function() {
+        it('if args.id === 0, no_such_device', function (done) {
+            rpcApis.devDisable({ id: 0 }, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    enabled: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.id === 1', function (done) {
+            rpcApis.devDisable({ id: 1 }, function (err, data) {
+                var fakeData = {
+                    id: 1,
+                    enabled: false,
+                    status: RPC.Status.Ok
+                };
+
+                if (!err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.id === 2, throw Error', function (done) {
+            var devEnableStub = sinon.stub(zDev2, 'disable', function () {
+                throw new Error('catchError');
+            });
+
+            rpcApis.devDisable({ id: 2 }, function (err, data) {
+                var fakeData = {
+                    id: 2,
+                    enabled: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'catchError' && _.isEqual(data, fakeData)) {
+                    devEnableStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.devRead', function() {
+        it('if args.id === 0, no_such_device', function (done) {
+            rpcApis.devRead({ id: 0, attrName: 'manufacturer'}, function (err, data) {
+                var fakeData = {
+                    id: 0,
+                    value: null,
+                    status: RPC.Status.NotFound
+                };
+
+                if (err && _.isEqual(data, fakeData))
+                    done();
+            });
+        });
+
+        it('if args.id === 2, error', function (done) {
+            var devEnableStub = sinon.stub(zDev2, 'read', function (attrName, callback) {
+                process.nextTick(function () {
+                    callback(new Error('Read fail'));
+                });
+            });
+
+            rpcApis.devRead({ id: 2, attrName: 'manufacturer'}, function (err, data) {
+                var fakeData = {
+                    id: 2,
+                    value: null,
+                    status: RPC.Status.InternalServerError
+                };
+
+                if (err.message === 'Read fail' && _.isEqual(data, fakeData)) {
+                    devEnableStub.restore();
+                    done();
+                }
+            });
+        });
+
+        it('if args.id === 2', function (done) {
+            var devEnableStub = sinon.stub(zDev2, 'read', function (attrName, callback) {
+                process.nextTick(function () {
+                    callback(null, 'abc');
+                });
+            });
+
+            rpcApis.devRead({ id: 2, attrName: 'manufacturer'}, function (err, data) {
+                var fakeData = {
+                    id: 2,
+                    value: 'abc',
+                    status: RPC.Status.Content
+                };
+
+                if (!err && _.isEqual(data, fakeData)) {
+                    devEnableStub.restore();
+                    done();
+                }
+            });
+        });
+    });
+
+    describe('#.devWrite', function() {
+
+    });
+
+    describe('#.devIdentify', function() {
+
+    });
+
+    describe('#.devPing', function() {
+
+    });
+
+    describe('#.devRemove', function() {
+
+    });
+
+    describe('#.devGetProps', function() {
+
+    });
+
+    describe('#.devSetProps', function() {
+
+    });
+
+    /***********************************************/
+    /*** Gadget APIs                             ***/
+    /***********************************************/
+    describe('#.gadEnable', function() {
+
+    });
+
+    describe('#.gadDisable', function() {
+
+    });
+
+    describe('#.gadRead', function() {
+
+    });
+
+    describe('#.gadWrite', function() {
+
+    });
+
+    describe('#.gadExec', function() {
+
+    });
+
+    describe('#.gadWriteReportCfg', function() {
+
+    });
+
+    describe('#.gadReadReportCfg', function() {
+
+    });
+
+    describe('#.gadGetProps', function() {
+
+    });
+
+    describe('#.gadSetProps', function() {
+
+    });
 });
 
 function getCheckedCb (times, errMsg, done) {
