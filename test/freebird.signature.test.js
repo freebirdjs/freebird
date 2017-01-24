@@ -10,19 +10,23 @@ var fakeNc = {
         _freebird: {},
         _controller: {},
         getName: function () { return 'fakeNc1'; },
-        start: function () {}, 
-        stop: function () {},  
-        reset: function () {},  
-        permitJoin: function () {}, 
-        remove: function () {},  
-        ban: function () {}, 
-        unban: function () {}, 
-        ping: function () {}, 
-        maintain: function () {}
+        start: function (cb) { cb(); }, 
+        stop: function (cb) { cb(); },  
+        reset: function (mode, cb) { cb(); },  
+        permitJoin: function (d, cb) { cb(); }, 
+        remove: function (ncName, permAddr, cb) { cb(); },  
+        ban: function (ncName, permAddr, cb) { cb(); }, 
+        unban: function (ncName, permAddr, cb) { cb(); }, 
+        ping: function (ncName, permAddr, cb) { cb(); }, 
+        maintain: function (cb) { cb(); }
     },
     fbWithNc = new Freebird([fakeNc], { dbPaths: {
         device: path.resolve(__dirname, '../database/testDevices.db'), 
         gadget: path.resolve(__dirname, '../database/testGadgets.db')
+    }}),
+    fbWithoutNc = new Freebird([], { dbPaths: {
+        device: path.resolve(__dirname, '../database/testDevices2.db'), 
+        gadget: path.resolve(__dirname, '../database/testGadgets2.db')
     }});
 
 describe('freebird - Constructor Check', function () {
@@ -207,6 +211,25 @@ describe('freebird - Signature Check', function () {
         it('should not throw if callback is a function', function () {
             expect(function () { return fbWithNc.start(function () {}); }).not.to.throw(TypeError);
         });
+
+        it('should not throw if no callback', function () {
+            expect(function () { return fbWithNc.start(); }).not.to.throw(Error);
+            expect(function () { return fbWithoutNc.start(); }).not.to.throw(Error);
+        });
+
+        it('should not has error in callback then fb has nc', function (done) {
+            fbWithNc.start(function (err) {
+                if (!err)
+                    done();
+            });
+        });        
+
+        it('should has error in callback then fb without nc', function (done) {
+            fbWithoutNc.start(function (err) {
+                if (err)
+                    done();
+            });
+        });
     });
 
     describe('#stop(callback)', function () {
@@ -221,6 +244,23 @@ describe('freebird - Signature Check', function () {
 
         it('should not throw if callback is a function', function () {
             expect(function () { return fbWithNc.stop(function () {}); }).not.to.throw(TypeError);
+        });
+
+        it('should not throw if no callback', function () {
+            expect(function () { return fbWithNc.stop(); }).not.to.throw(Error);
+            expect(function () { return fbWithoutNc.stop(); }).not.to.throw(Error);
+        });
+
+        it('should has null in callback then fb has nc', function (done) {
+            fbWithNc.stop(function (err) {
+                done();
+            });
+        });        
+
+        it('should has null in callback then fb without nc', function (done) {
+            fbWithoutNc.stop(function (err) {
+                done();
+            });
         });
     });
 
@@ -252,6 +292,25 @@ describe('freebird - Signature Check', function () {
         it('should not throw if callback is a function', function () {
             expect(function () { return fbWithNc.reset(0, function () {}); }).not.to.throw(TypeError);
         });
+
+        it('should not throw if no callback', function () {
+            expect(function () { return fbWithNc.reset(0); }).not.to.throw(Error);
+            expect(function () { return fbWithoutNc.reset(0); }).not.to.throw(Error);
+        });
+
+        it('should not has error in callback then fb has nc', function (done) {
+            fbWithNc.reset(0, function (err) {
+                if (!err)
+                    done();
+            });
+        });        
+
+        it('should has error in callback then fb without nc', function (done) {
+            fbWithoutNc.reset(0, function (err) {
+                if (err)
+                    done();
+            });
+        });
     });
 
     describe('#permitJoin(duration, callback)', function () {
@@ -278,6 +337,72 @@ describe('freebird - Signature Check', function () {
 
         it('should not throw if callback is a function', function () {
             expect(function () { return fbWithNc.permitJoin(30, function () {}); }).not.to.throw(TypeError);
+        });
+
+        it('should not throw if no callback', function () {
+            expect(function () { return fbWithNc.permitJoin(30); }).not.to.throw(Error);
+            expect(function () { return fbWithoutNc.permitJoin(30); }).not.to.throw(Error);
+        });
+
+        it('should not has error in callback then fb has nc', function (done) {
+            fbWithNc.permitJoin(30, function (err) {
+                if (!err)
+                    done();
+            });
+        });        
+
+        it('should has error in callback then fb without nc', function (done) {
+            fbWithoutNc.permitJoin(30, function (err) {
+                if (err)
+                    done();
+            });
+        });        
+    });
+
+    describe('#maintain(ncName, callback)', function () {
+        it('should throw if duration is not a string or null if given', function () {
+            expect(function () { return fbWithNc.maintain(1); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain([]); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain(NaN); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain(true); }).to.throw(TypeError);
+        });
+
+        it('should not throw if duration is a string, null or not given', function () {            
+            expect(function () { return fbWithNc.maintain(); }).not.to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain(null); }).not.to.throw(TypeError);  // need to check
+            expect(function () { return fbWithNc.maintain('fakeNc1'); }).not.to.throw(TypeError);
+        });
+
+        it('should throw if callback is not a function', function () {
+            expect(function () { return fbWithNc.maintain('fakeNc1', 1); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain('fakeNc1', 'xxx'); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain('fakeNc1', []); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain('fakeNc1', null); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain('fakeNc1', NaN); }).to.throw(TypeError);
+            expect(function () { return fbWithNc.maintain('fakeNc1', true); }).to.throw(TypeError);
+        });
+
+        it('should not throw if callback is a function', function () {
+            expect(function () { return fbWithNc.maintain('fakeNc1', function () {}); }).not.to.throw(TypeError);
+        });
+
+        it('should not throw if no callback', function () {
+            expect(function () { return fbWithNc.maintain('fakeNc1'); }).not.to.throw(Error);
+            expect(function () { return fbWithoutNc.maintain('fakeNc1'); }).not.to.throw(Error);
+        });
+
+        it('should not has error in callback then fb has nc', function (done) {
+            fbWithNc.maintain('fakeNc1', function (err) {
+                if (!err)
+                    done();
+            });
+        });        
+
+        it('should has error in callback then fb without nc', function (done) {
+            fbWithoutNc.maintain('fakeNc1', function (err) {
+                if (err)
+                    done();
+            });
         });
     });
 
@@ -410,34 +535,6 @@ describe('freebird - Signature Check', function () {
 
         it('should not throw if ncName and permAddr is a string, callback is a function', function () {
             expect(function () { return fbWithNc.ping('xxx', 'yyy', function () {}); }).not.to.throw(TypeError);
-        });
-    });
-
-    describe('#maintain(ncName, callback)', function () {
-        it('should throw if duration is not a string or null if given', function () {
-            expect(function () { return fbWithNc.maintain(1); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain([]); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain(NaN); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain(true); }).to.throw(TypeError);
-        });
-
-        it('should not throw if duration is a string, null or not given', function () {            
-            expect(function () { return fbWithNc.maintain(); }).not.to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain(null); }).not.to.throw(TypeError);  // need to check
-            expect(function () { return fbWithNc.maintain('fakeNc1'); }).not.to.throw(TypeError);
-        });
-
-        it('should throw if callback is not a function', function () {
-            expect(function () { return fbWithNc.maintain('fakeNc1', 1); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain('fakeNc1', 'xxx'); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain('fakeNc1', []); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain('fakeNc1', null); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain('fakeNc1', NaN); }).to.throw(TypeError);
-            expect(function () { return fbWithNc.maintain('fakeNc1', true); }).to.throw(TypeError);
-        });
-
-        it('should not throw if callback is a function', function () {
-            expect(function () { return fbWithNc.maintain('fakeNc1', function () {}); }).not.to.throw(TypeError);
         });
     });
 });
