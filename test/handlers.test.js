@@ -485,7 +485,7 @@ describe('Functional Check', function() {
             tweetSpy.restore();
         });
 
-        it('should foward event to upper layer and remove if device exist', function (done) {
+        it('should foward event to upper layer and remove if device exist and _removing flag is true', function (done) {
             var isJoinableStub = sinon.stub(netcore, 'isJoinable').returns(true),
                 msg = { ncName: 'fakeNc', permAddr: 'tobermv', raw: {} },
                 ncRmvStub = sinon.stub(netcore, 'remove', function (perm, cb) { cb(null); }),
@@ -494,6 +494,7 @@ describe('Functional Check', function() {
 
             netcore._cookRawDev = function (devInst, rawDev, cb) {
                 devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                devInst._removing = true;
                 cb(null, devInst);
             };
 
@@ -501,6 +502,8 @@ describe('Functional Check', function() {
 
             setTimeout(function () {
                 var dev = fb.findByNet('device', msg.ncName, msg.permAddr);
+
+                dev._removing = true;
 
                 fb.emit(EVT_BTM.NcBannedDevIncoming, msg);
 
@@ -522,12 +525,12 @@ describe('Functional Check', function() {
 
                     setTimeout(function () { done(); }, 5);
                 });
-            }, 20);
+            }, 50);
         });
     });
 
     describe('#ncBannedDevReporting', function () {
-        it('should foward event to upper layer if device not exist', function () {
+        it('should foward event to upper layer if device not exist and _removing flag is true', function () {
             var msg = { ncName: 'fakeNc', permAddr: '0x999999', raw: {} },
                 fireSpy = sinon.spy(fb, '_fire'),
                 tweetSpy = sinon.spy(fb, '_tweet');
@@ -553,6 +556,7 @@ describe('Functional Check', function() {
 
             netcore._cookRawDev = function (devInst, rawDev, cb) {
                 devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                devInst._removing = true;
                 cb(null, devInst);
             };
 
@@ -560,6 +564,8 @@ describe('Functional Check', function() {
 
             setTimeout(function () {
                 var dev = fb.findByNet('device', rptMsg.ncName, rptMsg.permAddr);
+
+                dev._removing = true;
 
                 fb.emit(EVT_BTM.NcBannedDevReporting, rptMsg);
 
@@ -1304,7 +1310,7 @@ describe('Functional Check', function() {
                 tweetSpy.restore();
 
                 done();
-            }, 10);
+            }, 30);
         });
     });
 });
