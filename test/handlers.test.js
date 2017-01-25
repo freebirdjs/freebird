@@ -494,6 +494,7 @@ describe('Functional Check', function() {
 
             netcore._cookRawDev = function (devInst, rawDev, cb) {
                 devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                devInst._removing = true;
                 cb(null, devInst);
             };
 
@@ -524,7 +525,7 @@ describe('Functional Check', function() {
 
                     setTimeout(function () { done(); }, 5);
                 });
-            }, 20);
+            }, 50);
         });
     });
 
@@ -555,6 +556,7 @@ describe('Functional Check', function() {
 
             netcore._cookRawDev = function (devInst, rawDev, cb) {
                 devInst.set('net', { address: { permanent: 'tobermv', dynamic: 1} });
+                devInst._removing = true;
                 cb(null, devInst);
             };
 
