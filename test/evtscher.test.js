@@ -6,7 +6,7 @@ var _ = require('busyman'),
 
 chai.use(sinonChai);
 
-var EvtScher = require('../lib/components/evtscheduler');
+var EvtScher = require('../lib/components/evtscher');
 
 var fakeFb = {
         emit: function () {}
