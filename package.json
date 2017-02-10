@@ -18,8 +18,9 @@
   "homepage": "https://github.com/simenkid/freebird",
   "dependencies": {
     "busyman": "^0.3.0",
-    "freebird-base": "^0.4.1",
+    "freebird-base": "^0.4.2",
     "freebird-constants": "^0.2.3",
+    "freebird-netcore-mockup": "^0.2.1",
     "objectbox": "^0.3.0",
     "proving": "^0.1.0",
     "sinon": "^1.17.7",
