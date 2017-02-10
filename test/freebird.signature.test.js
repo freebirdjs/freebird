@@ -21,8 +21,8 @@ var fakeNc = {
         maintain: function (cb) { cb(); }
     },
     fbWithNc = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets.db')
+        device: path.resolve(__dirname, '../database/testDevices0.db'), 
+        gadget: path.resolve(__dirname, '../database/testGadgets0.db')
     }}),
     fbWithoutNc = new Freebird([], { dbPaths: {
         device: path.resolve(__dirname, '../database/testDevices2.db'), 

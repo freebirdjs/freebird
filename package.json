@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "freebird-netcore-mockup": "^0.2.0",
+    "freebird-netcore-mockup": "^0.2.1",
     "mocha": "^2.5.3",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0"
