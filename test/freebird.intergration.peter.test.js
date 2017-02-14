@@ -1,5 +1,6 @@
 var fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    http = require('http');
 
 var _ = require('busyman'),
     chai = require('chai'),
@@ -7,7 +8,8 @@ var _ = require('busyman'),
     sinonChai = require('sinon-chai'),
     expect = chai.expect,
     mockup = require('freebird-netcore-mockup'),
-    FbConst = require('freebird-constants');
+    FbConst = require('freebird-constants'),
+    fbRpc = require('freebird-rpc');
 
 chai.use(sinonChai);
 
@@ -22,14 +24,26 @@ var Freebird = require('../index');
 
 var ncMock1 = mockup('mock01'),
     ncMock2 = mockup('mock02', true),
-    fbird = new Freebird([ncMock1, ncMock2]);
+    fbird = new Freebird([ncMock1, ncMock2]),
+    httpServer = http.createServer();
+
+httpServer.listen(3000);
+
+var rpcServer = fbRpc.createServer(httpServer),
+    rpcClient = fbRpc.createClient('ws://localhost:3000');
+
+fbird.addTransport('rpc1', rpcServer, function (err) {
+    if (err) console.log(err);
+});
 
 describe('Intergration test', function () {
     this.timeout(5000);
 
     before(function (done) {
         fbird.once(FbConst.EVENTS_TO_TOP.GAD_INCOMING, function () {
-            done();
+            setTimeout(function () {
+                done();
+            }, 500);
         });    
 
         fbird.start(function () {
@@ -66,28 +80,63 @@ describe('Intergration test', function () {
     });
 
     describe('#.maintain()', function () {
-        it('should call all controllers gadRead', function () {
-            var nc = fbird.findByNet('netcore', 'mock01'),
-                id = fbird._devbox.exportAllIds()[0],
-                permAddr = fbird._devbox.get(id)._net.address.permanent;
+        it('should call all controllers gadRead and has Dev and Gad AttrsChanged event', function (done) {
+            var nc1 = fbird.findByNet('netcore', 'mock01'),
+                nc2 = fbird.findByNet('netcore', 'mock02'),
+                nc1GadReadStub = sinon.stub(nc1._drivers.gad, 'read', function (permAddr, auxId, attr, done) {    
+                    if (done) done(null, 'gadRead_' + permAddr + '_' + auxId + '_' + attr);
+                }),
+                nc2MaintainStub = sinon.stub(nc2, 'maintain', function (done) {    
+                    if (done) done(null);
+                });
 
+            function devEventTestFunction() {
+
+            }
+
+            function gadEventTestFunction() {
+
+            }
+
+            fbird.on(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
+            fbird.on(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
+
+
+            fbird.maintain(function (err, msg) {
+                expect(nc1GadReadStub).to.be.called;
+                expect(nc2MaintainStub).to.be.called;
+                nc1GadReadStub.restore();
+                nc2MaintainStub.restore();
+                done();
+            });
         });
 
-        it('should call one controller gadRead', function () {
-            var nc = fbird.findByNet('netcore', 'mock01'),
-                id = fbird._devbox.exportAllIds()[0],
-                permAddr = fbird._devbox.get(id)._net.address.permanent;
+        it('should call one controller gadRead', function (done) {
+            var nc1 = fbird.findByNet('netcore', 'mock01'),
+                nc2 = fbird.findByNet('netcore', 'mock02'),
+                nc1GadReadStub = sinon.stub(nc1._drivers.gad, 'read', function (permAddr, auxId, attr, done) {    
+                    if (done) done(null, 'gadRead_' + permAddr + '_' + auxId + '_' + attr);
+                }),
+                nc2MaintainStub = sinon.stub(nc2, 'maintain', function (done) {    
+                    if (done) done(null);
+                });
+
+            fbird.maintain('mock01', function (err, msg) {
+                expect(nc1GadReadStub).to.be.called;
+                expect(nc2MaintainStub).to.be.not.called;
+                nc1GadReadStub.restore();
+                nc2MaintainStub.restore();
+                done();
+            });
         });
 
-        it('should has err msg when nc is disable', function (done) {
-            var nc = fbird.findByNet('netcore', 'mock01'),
-                id = fbird._devbox.exportAllIds()[0],
-                permAddr = fbird._devbox.get(id)._net.address.permanent;
+        it('should no msg when nc is disable', function (done) {
+            var nc = fbird.findByNet('netcore', 'mock01');
 
             nc.disable();
 
             fbird.maintain(function (err, msg) {
-                if (!err && !msg) {
+                 if (!err && !msg) {
                     nc.enable();
                     fbird.permitJoin(60);
                     done();
@@ -102,7 +151,7 @@ describe('Intergration test', function () {
                 id = fbird._devbox.exportAllIds()[0],
                 permAddr = fbird._devbox.get(id)._net.address.permanent;
 
-            fbird.on(FbConst.EVENTS_TO_TOP.DEV_LEAVING, function () {
+            fbird.once(FbConst.EVENTS_TO_TOP.DEV_LEAVING, function () {
                 nc._controller._reloadheldDevice();
                 nc._controller._newDevice();
                 fbird.once(FbConst.EVENTS_TO_TOP.GAD_INCOMING, function () {
@@ -110,9 +159,20 @@ describe('Intergration test', function () {
                 });    
             });
 
+            function rpcTestFunction(msg) {
+                if (msg.type === 'devLeaving') {
+                    rpcClient.removeListener('ind', rpcTestFunction);
+                    expect(msg.subsys).to.be.eql(1);
+                    expect(msg.id).to.be.eql(id);
+                    expect(msg.data.netcore).to.be.eql('mock01');
+                    expect(msg.data.permAddr).to.be.eql('AA:BB:CC:DD:EE:01');  
+                }
+            }
+
+            rpcClient.on('ind', rpcTestFunction);
+
             fbird.remove('mock01', permAddr, function (err, msg) {
-                console.log(err);
-                expect(msg).to.be.eql('remove_' + permAddr);
+                expect(msg).to.be.eql(permAddr);
             });
         });
 
