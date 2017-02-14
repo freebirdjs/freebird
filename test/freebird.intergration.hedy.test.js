@@ -310,15 +310,201 @@ describe('', function () {
             fbird.on(TOP_EVTS.GAD_BAN_INCOMING, banGadLsn2);
         });
 
-        it('check NcBannedGadIncoming when gadget of banned device join the network', function () {
+        it('check NcBannedDevReporting when banned device reporting', function (done) {
+            this.timeout(3500);
+            var banDevAddr = 'AA:BB:CC:DD:EE:01',
+                checkCount = 0,
+                lsn1, lsn2;
+
+            lsn1 = function (msg) {
+                if (msg.permAddr === banDevAddr &&
+                    msg.ncName === ncMock1.getName()) 
+                    checkCount += 1;
+            };
+
+            lsn2 = function (msg) {
+                if (msg.permAddr === banDevAddr &&
+                    msg.ncName === ncMock1.getName()) 
+                    checkCount += 1;
+
+                if (checkCount === 2) {
+                    fbird.removeListener(BTM_EVTS.NcBannedDevReporting, lsn1);
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcBannedDevReporting, lsn1);
+            fbird.on(TOP_EVTS.DEV_BAN_REPORTING, lsn2);
+        });
+
+        it('check NcBannedGadReporting when gadget of banned device reporting', function (done) {
+            this.timeout(3500);
+            var banDevAddr = 'AA:BB:CC:DD:EE:01',
+                banGadAuxId = 'magnetometer/0',
+                auxIds = ['magnetometer/0', 'lightCtrl/0', 'illuminance/0'],
+                checkCount = 0,
+                lsn1, lsn2;
+
+            lsn1 = function (msg) {
+                if (msg.permAddr === banDevAddr &&
+                    msg.ncName === ncMock1.getName() &&
+                    _.includes(auxIds, msg.auxId))
+                    checkCount += 1;
+            };
+
+            lsn2 = function (msg) {
+                if (msg.permAddr === banDevAddr &&
+                    msg.ncName === ncMock1.getName() &&
+                    _.includes(auxIds, msg.auxId))
+                    checkCount += 1;
+
+                if (checkCount === 2) {
+                    fbird.removeListener(BTM_EVTS.NcBannedGadReporting, lsn1);
+                    fbird.removeListener(TOP_EVTS.GAD_BAN_REPORTING, lsn2);
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcBannedGadReporting, lsn1);
+            fbird.on(TOP_EVTS.GAD_BAN_REPORTING, lsn2);
+        });
+    });
+
+    describe('unban(ncName, permAddr, callback)', function () {
+        it('unban device which is not in freebird', function (done) {
+            var unbanDevAddr = '0x11111111',
+                checkCount = 0,
+                lsn;
+
+            lsn = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr)
+                    checkCount += 1;
+
+                if (checkCount === 2) {
+                    fbird.removeListener(BTM_EVTS.NcNetUnban, lsn);
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcNetUnban, lsn);
+            fbird.unban(ncMock1.getName(), unbanDevAddr, function (err, permAddr) {
+                if (!err && permAddr === unbanDevAddr)
+                    checkCount += 1;
+            });
+        });
+
+        it('unban device which is in freebird', function (done) {
+            var unbanDevAddr = 'AA:BB:CC:DD:EE:01',
+                checkCount = 0,
+                lsn;
+
+            lsn = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr)
+                    checkCount += 1;
+
+                if (checkCount === 2) {
+                    fbird.removeListener(BTM_EVTS.NcNetUnban, lsn);
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcNetUnban, lsn);
+            fbird.unban(ncMock1.getName(), unbanDevAddr, function (err, permAddr) {
+                if (!err && permAddr === unbanDevAddr)
+                    checkCount += 1;
+            });
+        });
+
+        it('unban device when netcore is disable', function (done) {
+            var checkCount = 0,
+                lsn;
+
+            lsn = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.error.message === 'Netcore not enabled')
+                    checkCount += 1;
+
+                if (checkCount === 2) {
+                    fbird.removeListener(BTM_EVTS.NcError, lsn);
+                    ncMock1.enable();
+                    
+                    done();
+                }
+            };
+
+            ncMock1.disable();
+            fbird.on(BTM_EVTS.NcError, lsn);
+            fbird.unban(ncMock1.getName(), '0x22222222', function (err) {
+                if (err && err.message === 'Netcore not enabled')
+                    checkCount += 1;
+            });
+        });
+
+        it('check NcDevIncoming and NcGadIncoming when unbanned device join the network', function (done) {
+            this.timeout(3500);
+            var checkCount = 0,
+                unbanDevAddr = 'AA:BB:CC:DD:EE:01',
+                unbanGadAuxId = 'magnetometer/0',
+                unbanDevLsn1, 
+                unbanDevLsn2,
+                unbanGadLsn1, 
+                unbanGadLsn2;
+
+            unbanDevLsn1 = function (msg) {                
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr)
+                    checkCount += 1;
+            };
+
+            unbanDevLsn2 = function (msg) {
+                fbird.permitJoin(0);
+                if (msg.ncName === ncMock1.getName &&
+                    msg.permAddr === unbanDevAddr &&
+                    fbird.findByNet('device', ncMock1.getName(), unbanDevAddr))
+                    checkCount += 1;
+            };
+
+            unbanGadLsn1 = function (msg) {
+                
+
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr &&
+                    msg.auxId === unbanGadAuxId)
+                    checkCount += 1;
+            };
+
+            unbanGadLsn2 = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr &&
+                    msg.auxId === unbanGadAuxId &&
+                    fbird.findByNet('gadget', ncMock1.getName(), unbanDevAddr, unbanGadAuxId))
+                    checkCount += 1;
+
+                if (checkCount === 4) {
+                    fbird.removeListener(BTM_EVTS.NcDevIncoming, unbanDevLsn1);
+                    fbird.removeListener(BTM_EVTS.NcGadIncoming, unbanGadLsn1);
+                    fbird.removeListener(TOP_EVTS.DEV_INCOMING, unbanDevLsn2);
+                    fbird.removeListener(TOP_EVTS.GAD_INCOMING, unbanGadLsn2);
+
+                    done();
+                }
+            };
+
+            fbird.permitJoin(5);
+
+            fbird.on(BTM_EVTS.NcDevIncoming, unbanDevLsn1);
+            fbird.on(BTM_EVTS.NcGadIncoming, unbanGadLsn1);
+            fbird.on(TOP_EVTS.DEV_INCOMING, unbanDevLsn2);
+            fbird.on(TOP_EVTS.GAD_INCOMING, unbanGadLsn2);
+        });
+
+        it('check NcDevReporting when unbanned device reporting', function () {
 
         });
 
-        it('check NcBannedDevReporting when banned device reporting', function () {
-
-        });
-
-        it('check NcBannedGadReporting when gadget of banned device reporting', function () {
+        it('check NcGadReporting when gadget of unbanned device reporting', function () {
 
         });
     });
