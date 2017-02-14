@@ -1,10 +1,17 @@
-var util = require('util');
-var _ = require('busyman');
-var http = require('http');
-var ncMock = require('freebird-netcore-mockup');
-var FBCONST = require('freebird-constants');
+var util = require('util'),
+    _ = require('busyman'),
+    chai = require('chai'),
+    sinon = require('sinon'),
+    sinonChai = require('sinon-chai'),
+    expect = chai.expect,
+    http = require('http'),
+    ncMock = require('freebird-netcore-mockup'),
+    FBCONST = require('freebird-constants');
 
-var Freebird = require('../index');
+chai.use(sinonChai);
+
+var Freebird = require('../index'),
+    FB_STATE = require('../lib/utils/constants.js').FB_STATE;
 
 var BTM_EVTS = FBCONST.EVENTS_FROM_BOTTOM,
     TOP_EVTS = FBCONST.EVENTS_TO_TOP;
@@ -316,6 +323,8 @@ describe('', function () {
                 checkCount = 0,
                 lsn1, lsn2;
 
+
+
             lsn1 = function (msg) {
                 if (msg.permAddr === banDevAddr &&
                     msg.ncName === ncMock1.getName()) 
@@ -338,7 +347,7 @@ describe('', function () {
         });
 
         it('check NcBannedGadReporting when gadget of banned device reporting', function (done) {
-            this.timeout(3500);
+            this.timeout(10000);
             var banDevAddr = 'AA:BB:CC:DD:EE:01',
                 banGadAuxId = 'magnetometer/0',
                 auxIds = ['magnetometer/0', 'lightCtrl/0', 'illuminance/0'],
@@ -367,6 +376,7 @@ describe('', function () {
 
             fbird.on(BTM_EVTS.NcBannedGadReporting, lsn1);
             fbird.on(TOP_EVTS.GAD_BAN_REPORTING, lsn2);
+            ncMock1._controller._gadAttrRandomChanges('gad');
         });
     });
 
@@ -459,7 +469,6 @@ describe('', function () {
             };
 
             unbanDevLsn2 = function (msg) {
-                fbird.permitJoin(0);
                 if (msg.ncName === ncMock1.getName &&
                     msg.permAddr === unbanDevAddr &&
                     fbird.findByNet('device', ncMock1.getName(), unbanDevAddr))
@@ -467,8 +476,6 @@ describe('', function () {
             };
 
             unbanGadLsn1 = function (msg) {
-                
-
                 if (msg.ncName === ncMock1.getName() &&
                     msg.permAddr === unbanDevAddr &&
                     msg.auxId === unbanGadAuxId)
@@ -476,6 +483,7 @@ describe('', function () {
             };
 
             unbanGadLsn2 = function (msg) {
+                fbird.permitJoin(0);
                 if (msg.ncName === ncMock1.getName() &&
                     msg.permAddr === unbanDevAddr &&
                     msg.auxId === unbanGadAuxId &&
@@ -500,11 +508,235 @@ describe('', function () {
             fbird.on(TOP_EVTS.GAD_INCOMING, unbanGadLsn2);
         });
 
-        it('check NcDevReporting when unbanned device reporting', function () {
+        it('check NcDevReporting when unbanned device reporting', function (done) {
+            this.timeout(3500);
+            var unbanDevAddr = 'AA:BB:CC:DD:EE:01',
+                unbanDev = fbird.findByNet('device', ncMock1.getName(), unbanDevAddr),
+                checkCount = 0,
+                lsn1, lsn2;
+
+            lsn1 = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr)
+                    checkCount += 1;
+            };
+
+            lsn2 = function (msg) {
+                if (msg.ncName === ncMock1.getName() &&
+                    msg.permAddr === unbanDevAddr)
+                    checkCount += 1;
+
+                if (_.isEqual(unbanDev.get('attrs').version, msg.data.version))
+                    checkCount += 1;
+
+                if (checkCount === 3) {
+                    fbird.removeListener(BTM_EVTS.NcDevReporting, lsn1);
+                    fbird.removeListener(TOP_EVTS.DEV_REPORTING, lsn2);
+
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcDevReporting, lsn1);
+            fbird.on(TOP_EVTS.DEV_REPORTING, lsn2);
+        });
+
+        it('check NcGadReporting when gadget of unbanned device reporting', function (done) {
+            this.timeout(3500);
+            var checkCount = 0,
+                unbanDevAddr = 'AA:BB:CC:DD:EE:01',
+                auxIds = ['magnetometer/0', 'lightCtrl/0', 'illuminance/0'],
+                unbanGad,
+                lsn1, lsn2;
+
+            lsn1 = function (msg) {
+                if (msg.permAddr === unbanDevAddr &&
+                    msg.ncName === ncMock1.getName() &&
+                    _.includes(auxIds, msg.auxId))
+                    checkCount += 1;
+            };
+
+            lsn2 = function (msg) {
+                var attName = _.keys(msg.data)[0];
+
+                if (msg.permAddr === unbanDevAddr &&
+                    msg.ncName === ncMock1.getName() &&
+                    _.includes(auxIds, msg.auxId))
+                    checkCount += 1;
+
+                unbanGad = fbird.findByNet('gadget', ncMock1.getName(), unbanDevAddr, msg.auxId);
+
+                if (unbanGad.get('attrs')[attName] === msg.data[attName])
+                    checkCount += 1;
+
+                if (checkCount === 3) {
+                    fbird.removeListener(BTM_EVTS.NcGadReporting, lsn1);
+                    fbird.removeListener(TOP_EVTS.GAD_REPORTING, lsn2);
+
+                    done();
+                }
+            };
+
+            fbird.on(BTM_EVTS.NcGadReporting, lsn1);
+            fbird.on(TOP_EVTS.GAD_REPORTING, lsn2);
+            ncMock1._controller._gadAttrRandomChanges('gad');
+        });
+    });
+
+    describe('reset(mode, callback', function () {
+        it('soft reset when freebird status is unknow', function (done) {
+            fbird.stop(function (err) {
+                if (err) return;
+
+                fbird.reset(0, function (err) {
+                    expect(err.message).to.be.equal('You can only hard reset when freebird is stopped');
+                    expect(fbird._getState()).to.be.equal(FB_STATE.UNKNOW);
+                    done();
+                });
+            });
+        });
+
+        it('hard reset when freebird status is unknow and one netcore occurs error', function (done) {
+            var resetStub = sinon.stub(ncMock1._drivers.net, 'reset', function (mode, callback) {    
+                    callback(new Error('error'));
+                }),
+                resetSpy = sinon.spy(ncMock2, 'reset'),
+                stopSpy = sinon.spy(ncMock2, 'stop'),
+                loadedGads,
+                loadedDevs,
+                errFlag = false,
+                lsn;
+
+      /*      lsn = function (msg) {
+                console.log(msg);
+                if (msg.error.message === 'error')
+                    errFlag = true;
+            };
+
+            fbird.on(BTM_EVTS.NcError, lsn);*/
+
+            fbird.reset(1, function (err) {
+                loadedGads = fbird._gadbox.filter(function (gad) {
+                    return gad.get('netcore') === ncMock2;
+                });
+
+                loadedDevs = fbird._devbox.filter(function (dev) {
+                    return dev.get('netcore') === ncMock2;
+                });
+
+                expect(err.message).to.be.equal(ncMock1.getName() + ' netcore reset failed with error: error');
+                expect(loadedGads).to.be.deep.equal([]);
+                expect(loadedDevs).to.be.deep.equal([]);
+                expect(resetSpy).to.be.calledOnce;
+                expect(stopSpy).to.be.calledTwice;
+                // expect(errFlag).to.be.equal(true);
+                expect(fbird._getState()).to.be.equal(FB_STATE.UNKNOW);
+
+                resetStub.restore();
+                resetSpy.restore();
+                stopSpy.restore();
+                // fbird.removeListener(BTM_EVTS.NcError, lsn);
+
+                done();
+            });
+        });
+
+        it('hard reset when freebird status is unknow', function (done) {
+            var loadedGads1,
+                loadedDevs1,
+                loadedGads2,
+                loadedDevs2,
+                readyFlag = false,
+                lsn;
+
+            lsn = function () {
+                readyFlag = true;
+            };
+
+            ncMock1.enable();
+            ncMock2.enable();
+
+            fbird.on(TOP_EVTS.READY, lsn);
+
+            fbird.reset(1, function (err) {
+                loadedGads1 = fbird._gadbox.filter(function (gad) {
+                    return gad.get('netcore') === ncMock1;
+                });
+
+                loadedGads2 = fbird._gadbox.filter(function (gad) {
+                    return gad.get('netcore') === ncMock2;
+                });
+
+                loadedDevs1 = fbird._devbox.filter(function (dev) {
+                    return dev.get('netcore') === ncMock1;
+                });
+
+                loadedDevs2 = fbird._devbox.filter(function (dev) {
+                    return dev.get('netcore') === ncMock2;
+                });
+
+                expect(loadedGads1).to.be.deep.equal([]);
+                expect(loadedDevs1).to.be.deep.equal([]);
+                expect(loadedGads2).to.be.deep.equal([]);
+                expect(loadedDevs2).to.be.deep.equal([]);
+                expect(readyFlag).to.be.equal(true);
+                expect(fbird._getState()).to.be.equal(FB_STATE.NORMAL);
+
+                fbird.removeListener(TOP_EVTS.READY, lsn);
+
+                done();
+            });
+        });
+fbird.on(BTM_EVTS.NcError, function (msg) {
+    console.log(msg);
+});
+        it('soft reset when freebird status is normal and one netcore occurs error', function (done) {
+            var resetStub = sinon.stub(ncMock1._drivers.net, 'reset', function (mode, callback) {    
+                    callback(new Error('error'));
+                }),
+                errFlag = false,
+                lsn;
+
+            lsn = function (msg) {
+                if (msg.error.message === 'error')
+                    btmErrFlag = true;
+            };
+
+            fbird.on(BTM_EVTS.NcError, lsn);
+
+            fbird.reset(0, function (err) {
+                expect(err.message).to.be.equal(ncMock1.getName() + ' netcore reset failed with error: error');
+                expect(errFlag).to.be.equal(true);
+                expect(fbird._getState()).to.be.equal(FB_STATE.NORMAL);
+
+                resetStub.restore();
+                // fbird.removeListener(BTM_EVTS.NcError, lsn);
+
+                done();
+            });
+        });
+
+        it('soft reset when freebird status is normal', function () {
 
         });
 
-        it('check NcGadReporting when gadget of unbanned device reporting', function () {
+        it('hard reset when freebird status is normal and one netcore occurs error', function () {
+
+        });
+
+        it('hard reset when freebird status is normal', function () {
+
+        });
+
+        it('call start() when freebird is restting', function () {
+
+        });
+
+        it('call stop() when freebird is restting', function () {
+
+        });
+
+        it('call reset() when freebird is restting', function () {
 
         });
     });
