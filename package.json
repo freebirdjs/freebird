@@ -20,6 +20,7 @@
     "busyman": "^0.3.0",
     "freebird-base": "^0.4.2",
     "freebird-constants": "^0.2.3",
+    "freebird-rpc": "^0.2.0",
     "objectbox": "^0.3.0",
     "proving": "^0.1.0",
     "sinon": "^1.17.7",
