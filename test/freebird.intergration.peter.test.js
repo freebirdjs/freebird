@@ -80,7 +80,7 @@ describe('Intergration test', function () {
     });
 
     describe('#.maintain()', function () {
-        it('should call all controllers gadRead and has Dev and Gad AttrsChanged event', function (done) {
+        it('should call all controllers gadRead', function (done) {
             var nc1 = fbird.findByNet('netcore', 'mock01'),
                 nc2 = fbird.findByNet('netcore', 'mock02'),
                 nc1GadReadStub = sinon.stub(nc1._drivers.gad, 'read', function (permAddr, auxId, attr, done) {    
@@ -90,24 +90,61 @@ describe('Intergration test', function () {
                     if (done) done(null);
                 });
 
-            function devEventTestFunction() {
-
-            }
-
-            function gadEventTestFunction() {
-
-            }
-
-            fbird.on(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
-            fbird.on(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
-
-
             fbird.maintain(function (err, msg) {
                 expect(nc1GadReadStub).to.be.called;
                 expect(nc2MaintainStub).to.be.called;
                 nc1GadReadStub.restore();
                 nc2MaintainStub.restore();
                 done();
+            });
+        });
+
+        it('should has Dev and Gad AttrsChanged event', function (done) {
+            var nc1 = fbird.findByNet('netcore', 'mock01'),
+                nc2 = fbird.findByNet('netcore', 'mock02'),
+                id = fbird._devbox.exportAllIds()[0],
+                dev = fbird._devbox.get(id),
+                permAddr = dev._net.address.permanent,
+                auxId = dev._gads[0].auxId,
+                gad = fbird.findByNet('gadget', 'mock01', permAddr, auxId),
+                attrName = _.keys(gad._attrs)[0],
+                devAttrData = {},
+                gadAttrData = {};
+
+            devAttrData.model = 'xxx';
+            gadAttrData[attrName] = 'xxx';
+            dev.set('attrs', devAttrData);
+            gad.set('attrs', gadAttrData);
+
+            function devEventTestFunction(msg) {
+                if (msg._data.model === 'xxx') {
+                    fbird.removeListener(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
+                    expect(msg.data.model).to.be.eql('devRead_' + msg.permAddr + '_' + 'model');
+                }
+            }
+
+            function gadEventTestFunction(msg) {
+                if (msg._data[attrName] === 'xxx') {
+                    fbird.removeListener(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
+                    expect(msg.data[attrName]).to.be.eql('gadRead_' + msg.permAddr + '_' + auxId + '_' + attrName);
+                }
+            }
+
+            fbird.on(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
+            fbird.on(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
+
+            function rpcTestFunction(msg) {
+                if (msg.subsys === 2 && msg.type === 'attrsChanged' && msg.data[attrName] === 'gadRead_' + permAddr + '_' + auxId + '_' + attrName) {
+                    rpcClient.removeListener('ind', rpcTestFunction);
+                    done();
+                }
+            }
+
+            rpcClient.on('ind', rpcTestFunction);
+
+            fbird.maintain(function (err, msg) {
+                if (err)
+                    console.log(err);
             });
         });
 
