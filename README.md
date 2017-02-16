@@ -73,9 +73,38 @@ freebird.on('gadIncoming', function (gad) {
 
 ********************************************
 <a name="API_Freebird"></a>
-### new Freebird(name, netcores, options)
+### new Freebird(netcores[, options])
+Create a instance of the `Freebird` class. This document will use `freebird` to denote the instance.
 
-[TODO]
+**Arguments:**  
+
+1. `netcores` (_Object_ | _Array_): Should be a netcore or an array of netcores.
+2. `options` (_Object_): Optional settings for freebird.
+
+| Property  | Type   | Mandatory | Description                                                                                                                                                         |
+|-----------|--------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| maxDevNum | Number | optional  | Capacity of the device box of freebird, which is the maximum number of devices that freebird can store. If not given, a default value 200 will be used.             |
+| maxGadNum | Number | optional  | Capacity of the gadget box of freebird, which is the maximum number of gadgets that freebird can store. If not given, a default value 600 will be used.             |
+| dbPath    | Object | optional  | This object has fileds of `device` and `gadget` which is used to specify the file path to tell freebird where you'd like to keep your device or gadget information. |
+
+**Returns:**  
+
+* (_Object_): freebird
+
+**Examples:**
+
+```js
+var Freebird = require('freebird');
+
+var bleNetcore = require('freebird-netcore-ble'),
+    zbNetcore = require('freebird-netcore-zigbee'),
+    options = {
+        maxDevNum: 100,
+        maxGadNum: 500
+    };
+
+var freebird = new Freebird([bleNetcore, zbNetcore], options);
+```
 
 ********************************************
 <a name="API_findById"></a>
@@ -153,7 +182,7 @@ This method returns an array of netcores, devices, or gadgets which contains all
   
 **Arguments:**  
 
-1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or 'gadget'` to find netcores, devices, or gadgets that meet the prediction, respectively.  
+1. `type` (_String_): Only accepts `'netcore'`, `'device'`, or `'gadget'` to find netcores, devices, or gadgets that meet the prediction, respectively.  
 2. `pred` (_Function_): `function (obj) {}`,  the function invoked per iteration in a netcores, devices, or gadget collection.  
 
 **Returns:**  
@@ -180,13 +209,14 @@ freebird.filter('gadget', function (gad) {
 ```
 ********************************************
 <a name="API_addTransport"></a>
-### .addTransport(transp[, callback])
+### .addTransport(name, transp[, callback])
 Add a transportation to freebird for RPC messaging. Please refer to [freebird-transport](https://github.com/freebirdjs/freebird-transport) module for more details.  
   
 **Arguments:**  
 
-1. `transp` (_Object_): The instance of transportation.  
-2. `callback` (_Function_): `function (err) {}`.  
+1. `name` (_String_): Transportation name.
+2. `transp` (_Object_): The instance of transportation.  
+3. `callback` (_Function_): `function (err) {}`.  
 
 **Returns:**  
 
@@ -195,9 +225,13 @@ Add a transportation to freebird for RPC messaging. Please refer to [freebird-tr
 **Examples:**  
   
 ```js
-var freebirdRpc = require('freebird-rpc');
+var http = require('http'),
+    fbRpc = require('freebird-rpc');
 
-freebird.addTransport(freebirdRpc, function (err) {
+var httpServer = http.createServer().listen(3000),
+    rpcServer = fbRpc.createServer(httpServer);
+
+freebird.addTransport('rpcTransp', rpcServer, function (err) {
     if (err)
         console.log(err);
 });
@@ -362,7 +396,7 @@ Unban a device.
 **Arguments:**  
 
 1. `ncName` (_String_): Netcore name.  
-2. `permAddr` (_String_): Permanent address of the device to ban.  
+2. `permAddr` (_String_): Permanent address of the device to unban.  
 3. `callback` (_Function_): `function (err, permAddr) {}`. Get called after device unbanned, where `permAddr` is permananet address of that device.  
 
 **Returns:**  
@@ -389,7 +423,6 @@ Ping a remote device.
 2. `permAddr` (_String_): Permanent address of the device to ping.  
 3. `callback` (_Function_): `function (err, time) {}`. Get called after ping response comes back, where `time` is the round-trip time in milliseconds, e.g., 16.  
 
-
 **Returns:**  
 
 * _none_  
@@ -410,16 +443,102 @@ freebird.ping('mqtt-core', '00:0c:29:ff:ed:7c', function (err, time) {
   
 **Arguments:**  
 
-* _none_
+1. `ncName` (_String_): Netcore name. freebird will maintain all netcores if `ncName` not given.
+2. `callback` (_Function_): `function (err) {}`. Get called after maintained.  
 
 **Returns:**  
 
-* (_Boolean_): `true` if enabled, otherwise `false`.  
+* _none_  
 
 **Examples:**  
   
 ```js
+freebird.maintain('mqtt-core', function (err) {
+    if (!err)
+        console.log('freebird is maintained');
+});
 ```
+
+********************************************
+## Events
+
+* Event: 'error'
+    - Emitted when freebird occurs error
+    - data: `error object`
+
+* Event: 'ready'
+    - Emitted when freebird is ready
+    - data: `{ netcore: 'xxx' }`
+
+* Event: 'ncEnabled'
+    - Emitted when a netcore is enabled
+    - data: `{ ncName: 'xxx' }`
+
+* Event: 'ncDisabled'
+    - Emitted when a netcore is disabled
+    - data: `{ ncName: 'xxx' }`
+
+* Event: 'ncStarted'
+    - Emitted when a netcore is started
+    - data: `{ ncName: 'xxx' }`
+
+* Event: 'ncStopped'
+    - Emitted when a netcore is stopped
+    - data: `{ ncName: 'xxx' }`
+
+* Event: 'ncPermitJoin'
+    - Emitted when a netcore is now allowing or disallowing devices to join the network, where `timeLeft` is number of seconds left to allow devices to join the network. 
+    - data: `{ ncName: 'xxx', timeLeft: 60 }`
+
+* Event: 'devIncoming'
+    - Emitted when a new device is incoming
+    - data: `{ ncName: 'xxx', permAddr: '00:0c:29:ff:ed:7c', id: 5, device:  }`
+
+********************************************
+
+
+'netChanged',
+'statusChanged',
+'devPropsChanged',
+'devAttrsChanged',
+'panelChanged',
+'gadPropsChanged',
+'gadAttrsChanged',
+'devIncoming',
+'devLeaving',
+'devReporting',
+'bannedDevIncoming',
+'bannedDevReporting',
+'gadIncoming',
+'gadLeaving',
+'gadReporting',
+'bannedGadIncoming',
+'bannedGadReporting'
+
+'error'
+'ready'
+'ncEnabled'
+'ncDisabled'
+'ncStarted'
+'ncStopped'
+'ncPermitJoin'
+'devIncoming'
+'devLeaving'
+'devReporting'
+'devNetChanged'
+'devStatusChanged'
+'devPropsChanged'
+'devAttrsChanged'
+'gadIncoming'
+'gadLeaving'
+'gadReporting'
+'gadPanelChanged'
+'gadPropsChanged'
+'gadAttrsChanged'
+'bannedDevIncoming'
+'bannedDevReporting'
+'bannedGadIncoming'
+'bannedGadReporting'
 
 
 ********************************************
@@ -443,50 +562,3 @@ freebird.gad.write
 freebird.gad.exec
 freebird.gad.setReportCfg
 freebird.gad.getReportCfg
-
-********************************************
-## Events
-
-* Event: 'error'
-    - data: `{}`
-
-* Event: 'netReady'
-    - data: `{ netcore: 'xxx' }`
-
-* Event: 'permitJoin'
-    - data: `{ netcore: 'xxx', timeLeft: 180 }`
-
-* Event: 'started'
-    - data: `{ netcore: 'xxx' }`
-
-* Event: 'stopped'
-    - data: `{ netcore: 'xxx' }`
-
-* Event: 'enabled'
-    - data: `{ netcore: 'xxx' }`
-
-* Event: 'disabled'
-    - data: `{ netcore: 'xxx' }`
-
-* Event: 'netChanged'
-    - data: `{ netcore: 'xxx', dev: 3, data: delta }`
-    - data: `{ netcore: 'xxx', gad: 7, data: delta }`
-
-
-'netChanged',
-'statusChanged',
-'devPropsChanged',
-'devAttrsChanged',
-'panelChanged',
-'gadPropsChanged',
-'gadAttrsChanged',
-'devIncoming',
-'devLeaving',
-'devReporting',
-'bannedDevIncoming',
-'bannedDevReporting',
-'gadIncoming',
-'gadLeaving',
-'gadReporting',
-'bannedGadIncoming',
-'bannedGadReporting'

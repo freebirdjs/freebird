@@ -145,7 +145,7 @@ describe('Intergration test', function () {
             fbird.on(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
 
             function rpcDevTestFunction(msg) {
-                if (msg.subsys === 1 && msg.type === 'attrsChanged' && msg.data.model === 'devRead_' + permAddr + '_model') {
+                if (msg.subsys === 'dev' && msg.type === 'attrsChanged' && msg.data.model === 'devRead_' + permAddr + '_model') {
                     rpcClient.removeListener('ind', rpcDevTestFunction);
                     count += 1;
                     countChk();
@@ -153,7 +153,7 @@ describe('Intergration test', function () {
             }
 
             function rpcGadTestFunction(msg) {
-                if (msg.subsys === 2 && msg.type === 'attrsChanged' && msg.data[attrName] === 'gadRead_' + permAddr + '_' + auxId + '_' + attrName) {
+                if (msg.subsys === 'gad' && msg.type === 'attrsChanged' && msg.data[attrName] === 'gadRead_' + permAddr + '_' + auxId + '_' + attrName) {
                     rpcClient.removeListener('ind', rpcGadTestFunction);
                     count += 1;
                     countChk();
@@ -228,7 +228,7 @@ describe('Intergration test', function () {
             function rpcTestFunction(msg) {
                 if (msg.type === 'devLeaving') {
                     rpcClient.removeListener('ind', rpcTestFunction);
-                    expect(msg.subsys).to.be.eql(1);
+                    expect(msg.subsys).to.be.eql('dev');
                     expect(msg.id).to.be.eql(id);
                     expect(msg.data.netcore).to.be.eql('mock01');
                     expect(msg.data.permAddr).to.be.eql('AA:BB:CC:DD:EE:01');
