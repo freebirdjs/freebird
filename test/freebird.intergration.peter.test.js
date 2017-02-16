@@ -109,17 +109,26 @@ describe('Intergration test', function () {
                 gad = fbird.findByNet('gadget', 'mock01', permAddr, auxId),
                 attrName = _.keys(gad._attrs)[0],
                 devAttrData = {},
-                gadAttrData = {};
+                gadAttrData = {},
+                count = 0;
 
             devAttrData.model = 'xxx';
             gadAttrData[attrName] = 'xxx';
             dev.set('attrs', devAttrData);
             gad.set('attrs', gadAttrData);
 
+            function countChk() {
+                if (count === 4) {
+                    done();
+                }
+            }
+
             function devEventTestFunction(msg) {
                 if (msg._data.model === 'xxx') {
                     fbird.removeListener(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
-                    expect(msg.data.model).to.be.eql('devRead_' + msg.permAddr + '_' + 'model');
+                    expect(msg.data.model).to.be.eql('devRead_' + msg.permAddr + '_model');
+                    count += 1;
+                    countChk();
                 }
             }
 
@@ -127,20 +136,32 @@ describe('Intergration test', function () {
                 if (msg._data[attrName] === 'xxx') {
                     fbird.removeListener(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
                     expect(msg.data[attrName]).to.be.eql('gadRead_' + msg.permAddr + '_' + auxId + '_' + attrName);
+                    count += 1;
+                    countChk();
                 }
             }
 
             fbird.on(FbConst.EVENTS_TO_TOP.DEV_ATTRS_CHANGED, devEventTestFunction);
             fbird.on(FbConst.EVENTS_TO_TOP.GAD_ATTRS_CHANGED, gadEventTestFunction);
 
-            function rpcTestFunction(msg) {
-                if (msg.subsys === 2 && msg.type === 'attrsChanged' && msg.data[attrName] === 'gadRead_' + permAddr + '_' + auxId + '_' + attrName) {
-                    rpcClient.removeListener('ind', rpcTestFunction);
-                    done();
+            function rpcDevTestFunction(msg) {
+                if (msg.subsys === 1 && msg.type === 'attrsChanged' && msg.data.model === 'devRead_' + permAddr + '_model') {
+                    rpcClient.removeListener('ind', rpcDevTestFunction);
+                    count += 1;
+                    countChk();
                 }
             }
 
-            rpcClient.on('ind', rpcTestFunction);
+            function rpcGadTestFunction(msg) {
+                if (msg.subsys === 2 && msg.type === 'attrsChanged' && msg.data[attrName] === 'gadRead_' + permAddr + '_' + auxId + '_' + attrName) {
+                    rpcClient.removeListener('ind', rpcGadTestFunction);
+                    count += 1;
+                    countChk();
+                }
+            }
+
+            rpcClient.on('ind', rpcDevTestFunction);
+            rpcClient.on('ind', rpcGadTestFunction);
 
             fbird.maintain(function (err, msg) {
                 if (err)
@@ -186,13 +207,21 @@ describe('Intergration test', function () {
         it('should has callback msg and NcDevLeaving event when device is in fb', function (done) {
             var nc = fbird.findByNet('netcore', 'mock01'),
                 id = fbird._devbox.exportAllIds()[0],
-                permAddr = fbird._devbox.get(id)._net.address.permanent;
+                permAddr = fbird._devbox.get(id)._net.address.permanent,
+                count = 0;
+
+            function countChk() {
+                if (count === 2) {
+                    done();
+                }
+            }
 
             fbird.once(FbConst.EVENTS_TO_TOP.DEV_LEAVING, function () {
                 nc._controller._reloadheldDevice();
                 nc._controller._newDevice();
                 fbird.once(FbConst.EVENTS_TO_TOP.GAD_INCOMING, function () {
-                    done();
+                    count += 1;
+                    countChk();
                 });    
             });
 
@@ -202,7 +231,9 @@ describe('Intergration test', function () {
                     expect(msg.subsys).to.be.eql(1);
                     expect(msg.id).to.be.eql(id);
                     expect(msg.data.netcore).to.be.eql('mock01');
-                    expect(msg.data.permAddr).to.be.eql('AA:BB:CC:DD:EE:01');  
+                    expect(msg.data.permAddr).to.be.eql('AA:BB:CC:DD:EE:01');
+                    count += 1;
+                    countChk();  
                 }
             }
 
