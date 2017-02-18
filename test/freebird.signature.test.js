@@ -218,6 +218,7 @@ describe('freebird - Signature Check', function () {
         });
 
         it('should not has error in callback then fb has nc', function (done) {
+            fakeNc._state = 0;
             fbWithNc.start(function (err) {
                 if (!err)
                     done();

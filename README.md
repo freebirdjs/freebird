@@ -657,7 +657,7 @@ APIs `findById()`, `findByNet()`, `filter()` can help you find the instance of t
 
 **freebird** is a underlying construction that helps you manage your machine network of different protocol in the same time, like BLE, Zigbee, MQTT or CoAP. With **freebird**, it is easy and quick to implement IoT webapps.
 
-In the process of establishing webapp, due to the communcation between the web client and the web server is remotely, so you need to build a RPC channel to do Remote Process Communication. There are many ways to implement RPC channel, you can use TCP socket, RESTful APIs or WebSocket etc. 
+In the process of establishing webapp, due to the communcation between the web client and the web server is remotely, so you need to build a RPC channel to do Remote Process Communication. There are many ways to implement RPC channel, you can use TCP socket, RESTful APIs, WebSocket, etc. And Developers should define RPC interface according to their application type. 
 
 </br>
 

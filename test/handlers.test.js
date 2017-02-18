@@ -47,7 +47,7 @@ describe('Functional Check', function() {
             fb.emit(EVT_BTM.NcError, msg);
 
             expect(fireSpy).to.be.calledOnce;
-            expect(fireSpy).to.be.calledWith(EVT_TOP.ERROR, msg.error.message);
+            expect(fireSpy).to.be.calledWith(EVT_TOP.ERROR, msg.error);
             expect(tweetSpy).to.be.calledOnce;
             expect(tweetSpy).to.be.calledWith('net', 'error', 0, { netcore: msg.ncName, message: msg.error.message });
             
