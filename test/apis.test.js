@@ -7,8 +7,9 @@ var chai = require('chai'),
     _ = require('busyman'),
     RPC = require('freebird-constants').RPC;
 
-var rpcApis = require('../lib/rpc/apis'),
-    FBase = require('freebird-base');
+var fbRpcApis = require('../lib/rpc/apis'),
+    FBase = require('freebird-base'),
+    rpcApis = [];
 
 var zCore = FBase.createNetcore('zCore', {}, { phy: 'ieee802.15.4', nwk: 'zigbee' }),
     mCore = FBase.createNetcore('mCore', {}, { phy: 'ieee802', nwk: 'ip' });
@@ -140,8 +141,8 @@ describe('APIs - signature checks', function() {
         });
     });
 
-    for (var rpcApi in rpcApis) {
-        rpcApis[rpcApi] = rpcApis[rpcApi].bind(fb);
+    for (var rpcApi in fbRpcApis) {
+        rpcApis[rpcApi] = fbRpcApis[rpcApi].bind(fb);
     }
 
     /***********************************************/

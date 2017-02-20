@@ -27,8 +27,13 @@ describe('Signature Check', function () {
 
     _.forEach(EVT_BTM, function (evName) {
         it('throw if freebird not listen ' + evName + ' event', function () {
-            if (!_.includes(unListenedEvts, evName))
-                expect(fb.listenerCount(evName)).to.be.equal(1);
+            if (!_.includes(unListenedEvts, evName)) {
+                if (process.version === 'v0.12.0') {
+                    expect(fb.listeners(evName).length).to.be.equal(1);
+                } else {
+                    expect(fb.listenerCount(evName)).to.be.equal(1);
+                }
+            }
         });        
     });
 });
