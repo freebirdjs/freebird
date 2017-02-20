@@ -114,7 +114,6 @@ freebird.on('gadIncoming', function (gad) {
 * [.unban()](#API_unban)
 * [.ping()](#API_ping)
 * [.maintain()](#API_maintain)
-* [.maintain()](#API_maintain)
 
 </br>
 
