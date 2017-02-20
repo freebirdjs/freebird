@@ -1,3 +1,6 @@
+var fs = require('fs'),
+    path = require('path');
+
 var chai = require('chai'),
     sinon = require('sinon'),
     sinonChai = require('sinon-chai'),
@@ -15,7 +18,10 @@ var EVT_BTM = FbConst.EVENTS_FROM_BOTTOM,
 var netcore = FBase.createNetcore('fakeNc', {}, { phy: 'phy', nwk: 'nwk' });
 
 var Freebird = require('../lib/freebird'),
-    fb = new Freebird(netcore, {});
+    fb = new Freebird(netcore, { dbPaths: {
+        device: path.resolve(__dirname, './database/testDevices3.db'), 
+        gadget: path.resolve(__dirname, './database/testGadgets3.db')
+    }});
 
 
 describe('Signature Check', function () {
@@ -28,11 +34,11 @@ describe('Signature Check', function () {
     _.forEach(EVT_BTM, function (evName) {
         it('throw if freebird not listen ' + evName + ' event', function () {
             if (!_.includes(unListenedEvts, evName)) {
-                if (process.version === 'v0.12.0') {
+                // if (process.version === 'v0.12.0') {
                     expect(fb.listeners(evName).length).to.be.equal(1);
-                } else {
-                    expect(fb.listenerCount(evName)).to.be.equal(1);
-                }
+                // } else {
+                //     expect(fb.listenerCount(evName)).to.be.equal(1);
+                // }
             }
         });        
     });
@@ -924,7 +930,7 @@ describe('Functional Check', function() {
                 tweetSpy.restore();
 
                 done();
-            }, 10);
+            }, 30);
         });
     });
 
@@ -1316,6 +1322,17 @@ describe('Functional Check', function() {
 
                 done();
             }, 30);
+        });
+
+        after(function (done) {
+            try {
+                fs.unlink(path.resolve(__dirname, './database/testDevices3.db'));
+                fs.unlink(path.resolve(__dirname, './database/testGadgets3.db'));
+            } catch (e) {
+                console.log(e);
+            }
+
+            done();
         });
     });
 });

@@ -49,12 +49,12 @@ var fakeNc = {
         _getState: function (state) { return this._state; }
     },
     fb = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices1.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets1.db')
+        device: path.resolve(__dirname, './database/testDevices1.db'), 
+        gadget: path.resolve(__dirname, './database/testGadgets1.db')
     }}),
     fbMultiNc = new Freebird([fakeNc, fakeNc2], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices2.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets2.db')
+        device: path.resolve(__dirname, './database/testDevices2.db'), 
+        gadget: path.resolve(__dirname, './database/testGadgets2.db')
     }}),
     fakeGetFunc = function (name) {
         switch (name) {
@@ -1051,6 +1051,19 @@ describe('freebird - Functional Check', function () {
                 });
 
             fb._tweet('gad', 'test', 1, 'test');
+        });
+
+        after(function (done) {
+            try {
+                fs.unlink(path.resolve(__dirname, './database/testDevices1.db'));
+                fs.unlink(path.resolve(__dirname, './database/testGadgets1.db'));
+                fs.unlink(path.resolve(__dirname, './database/testDevices2.db'));
+                fs.unlink(path.resolve(__dirname, './database/testGadgets2.db'));
+            } catch (e) {
+                console.log(e);
+            }
+
+            done();
         });
     });
 });

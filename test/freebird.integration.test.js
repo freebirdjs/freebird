@@ -12,13 +12,6 @@ var fs = require('fs'),
 
 chai.use(sinonChai);
 
-// try {
-//     fs.unlinkSync(path.resolve('../database/devices.db'));
-//     fs.unlinkSync(path.resolve('../database/gadgets.db'));
-// } catch (e) {
-//     console.log(e);
-// }
-
 var Freebird = require('../index');
     
 var FB_STATE = require('../lib/utils/constants.js').FB_STATE,
@@ -40,7 +33,10 @@ var rpcServer = fbRpc.createServer(httpServer),
 describe('Intergration test', function () {
     describe('#new Freebird()', function () {
         before(function () {
-            fbird = new Freebird([ ncMock1, ncMock2 ]);
+            fbird = new Freebird([ ncMock1, ncMock2 ], { dbPaths: {
+                device: path.resolve(__dirname, './database/devices.db'), 
+                gadget: path.resolve(__dirname, './database/gadgets.db')
+            }});
         });
 
         it('should has all correct members after new', function () {
@@ -2616,6 +2612,17 @@ describe('Intergration test', function () {
                 if (err && err.message === 'Freebird can not reset now')
                     resetErrFlag = true;
             });
+        });
+
+        after(function (done) {
+            try {
+                fs.unlink(path.resolve(__dirname, './database/devices.db'));
+                fs.unlink(path.resolve(__dirname, './database/gadgets.db'));
+            } catch (e) {
+                console.log(e);
+            }
+
+            done();
         });
     });
 });

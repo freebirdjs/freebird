@@ -21,12 +21,12 @@ var fakeNc = {
         maintain: function (cb) { cb(); }
     },
     fbWithNc = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices0.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets0.db')
+        device: path.resolve(__dirname, './database/testDevices0.db'), 
+        gadget: path.resolve(__dirname, './database/testGadgets0.db')
     }}),
     fbWithoutNc = new Freebird([], { dbPaths: {
-        device: path.resolve(__dirname, '../database/testDevices2.db'), 
-        gadget: path.resolve(__dirname, '../database/testGadgets2.db')
+        device: path.resolve(__dirname, './database/testDevices2.db'), 
+        gadget: path.resolve(__dirname, './database/testGadgets2.db')
     }});
 
 describe('freebird - Constructor Check', function () {
@@ -536,6 +536,17 @@ describe('freebird - Signature Check', function () {
 
         it('should not throw if ncName and permAddr is a string, callback is a function', function () {
             expect(function () { return fbWithNc.ping('xxx', 'yyy', function () {}); }).not.to.throw(TypeError);
+        });
+
+        after(function (done) {
+            try {
+                fs.unlink(path.resolve(__dirname, './database/testDevices0.db'));
+                fs.unlink(path.resolve(__dirname, './database/testGadgets0.db'));
+            } catch (e) {
+                console.log(e);
+            }
+
+            done();
         });
     });
 });
