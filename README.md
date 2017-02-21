@@ -40,14 +40,20 @@ TBD
 <a name="Overview"></a>
 ## 1. Overview
 
-### TBD
+**freebird** is a Node.js framework that can building a heterogeneous network, such as BLE, ZigBee, CoAP and MQTT Protocols. It easy to deploy in many platforms like PC, Raspberry Pi, Beaglebone or other embedded device. This framework also provides a uniform interface for developers to operate the various protocols device at the same time, and as the Infrastructure of the IoT/WoT. With **freebird**, you can make **Front-end**, **Cloud** and **Machine** that simply connected with each other.  
+
+The **freebird** framework has three basic classes of [**Netcore**](https://github.com/freebirdjs/freebird-base/blob/master/docs/NetcoreClass.md), [**Device**](https://github.com/freebirdjs/freebird-base/blob/master/docs/DeviceClass.md) and [**Gadget**](https://github.com/freebirdjs/freebird-base/blob/master/docs/GadgetClass.md) that are represent the network controller, remote device and resource of the device, respectively. For the RPC interface, you can create your own transportation to communicate with freebird, like TCP socket, RESTful APIs, WebSocket, and so on.  
 
 <br />
 
 <a name="Features"></a>
 ## 2. Features
 
-### TBD
+* Cross protocol, such as BLE, ZigBee, CoAP and MQTT.
+* Hierarchical data model in [Smart Object (IPSO)](http://www.ipso-alliance.org/ipso-community/resources/smart-objects-interoperability/) .
+* The local network management center and application gateway.
+* Based-on node.js that can easy to integrate machine applications with other services or frameworks, e.g., http server, express, React.js, Angular.js.
+* Handle the most basic part of internet of things and help front-end developers build any fascinating GUI and dashboard.
 
 <br />
 
