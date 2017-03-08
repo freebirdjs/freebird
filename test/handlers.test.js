@@ -18,10 +18,7 @@ var EVT_BTM = FbConst.EVENTS_FROM_BOTTOM,
 var netcore = FBase.createNetcore('fakeNc', {}, { phy: 'phy', nwk: 'nwk' });
 
 var Freebird = require('../lib/freebird'),
-    fb = new Freebird(netcore, { dbPaths: {
-        device: path.resolve(__dirname, './database/testDevices3.db'), 
-        gadget: path.resolve(__dirname, './database/testGadgets3.db')
-    }});
+    fb = new Freebird(netcore);
 
 
 describe('Signature Check', function () {
@@ -1326,8 +1323,8 @@ describe('Functional Check', function() {
 
         after(function (done) {
             try {
-                fs.unlink(path.resolve(__dirname, './database/testDevices3.db'));
-                fs.unlink(path.resolve(__dirname, './database/testGadgets3.db'));
+                fs.unlink(path.resolve(__dirname, '../database/devices.db'));
+                fs.unlink(path.resolve(__dirname, '../database/gadgets.db'));
             } catch (e) {
                 console.log(e);
             }

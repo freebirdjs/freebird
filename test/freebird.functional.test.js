@@ -48,13 +48,9 @@ var fakeNc = {
         _setState: function (state) { this._state = state; },
         _getState: function (state) { return this._state; }
     },
-    fb = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, './database/testDevices1.db'), 
-        gadget: path.resolve(__dirname, './database/testGadgets1.db')
-    }}),
-    fbMultiNc = new Freebird([fakeNc, fakeNc2], { dbPaths: {
-        device: path.resolve(__dirname, './database/testDevices2.db'), 
-        gadget: path.resolve(__dirname, './database/testGadgets2.db')
+    fb = new Freebird([fakeNc, fakeNc2], { dbPaths: {
+        device: path.resolve(__dirname, './database/devices.db'), 
+        gadget: path.resolve(__dirname, './database/gadgets.db')
     }}),
     fakeGetFunc = function (name) {
         switch (name) {
@@ -331,17 +327,17 @@ describe('freebird - Functional Check', function () {
         //     fakeNc._state = FB_STATE.UNKNOW;
         //     fakeNc2._state = FB_STATE.UNKNOW;
 
-        //     fbMultiNc.start(function (err) {
+        //     fb.start(function (err) {
         //         done();
         //     });
         // });
 
         it('should start success and change state from unknow to normal', function (done) {
             // unknow
-            var devFindFromDbStub = sinon.stub(fbMultiNc._devbox, 'findFromDb', function (obj, cb) {
+            var devFindFromDbStub = sinon.stub(fb._devbox, 'findFromDb', function (obj, cb) {
                     setImmediate(cb, null, []);
                 }),
-                gadFindFromDbStub = sinon.stub(fbMultiNc._gadbox, 'findFromDb', function (obj, cb) {
+                gadFindFromDbStub = sinon.stub(fb._gadbox, 'findFromDb', function (obj, cb) {
                     setImmediate(cb, null, []);
                 }),
                 startStub = sinon.stub(fakeNc, 'start', function (callback) {    
@@ -350,19 +346,19 @@ describe('freebird - Functional Check', function () {
                 startStub2 = sinon.stub(fakeNc2, 'start', function (callback) {    
                     callback();
                 }),
-                maintainSpy = sinon.spy(fbMultiNc, 'maintain'),
-                emitSpy = sinon.spy(fbMultiNc, 'emit');
+                maintainSpy = sinon.spy(fb, 'maintain'),
+                emitSpy = sinon.spy(fb, 'emit');
 
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
             fakeNc._state = FB_STATE.UNKNOW;
             fakeNc2._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.start(function () {
+            fb.start(function () {
                 expect(devFindFromDbStub).to.be.calledTwice;
                 expect(gadFindFromDbStub).to.be.calledTwice;
                 expect(startStub).to.be.calledOnce;
                 expect(startStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(maintainSpy).to.be.calledOnce;
                 expect(emitSpy).to.be.calledWith(EVT_TOP.READY);
 
@@ -379,10 +375,10 @@ describe('freebird - Functional Check', function () {
 
         it('should fail if one netcore start fails', function (done) {
             // unknow
-            var devFindFromDbStub = sinon.stub(fbMultiNc._devbox, 'findFromDb', function (obj, cb) {
+            var devFindFromDbStub = sinon.stub(fb._devbox, 'findFromDb', function (obj, cb) {
                     setImmediate(cb, null, []);
                 }),
-                gadFindFromDbStub = sinon.stub(fbMultiNc._gadbox, 'findFromDb', function (obj, cb) {
+                gadFindFromDbStub = sinon.stub(fb._gadbox, 'findFromDb', function (obj, cb) {
                     setImmediate(cb, null, []);
                 }),
                 startStub = sinon.stub(fakeNc, 'start', function (callback) {    
@@ -395,15 +391,15 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.start(function (err) {
+            fb.start(function (err) {
                 expect(devFindFromDbStub).to.be.calledTwice;
                 expect(gadFindFromDbStub).to.be.calledTwice;
                 expect(startStub).to.be.calledOnce;
                 expect(stopStub2).to.be.calledOnce;
                 expect(startStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.UNKNOW);
+                expect(fb._getState()).to.be.equal(FB_STATE.UNKNOW);
                 expect(err.message).to.be.equal('fakeNc1 netcore start failed with error: error');
 
                 devFindFromDbStub.restore();
@@ -418,13 +414,13 @@ describe('freebird - Functional Check', function () {
 
         it('should return error if all netcore are started', function (done) {
             // normal
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
             fakeNc._state = FB_STATE.NORMAL;
             fakeNc2._state = FB_STATE.NORMAL;
 
-            fbMultiNc.start(function (err) {
+            fb.start(function (err) {
                 expect(err.message).to.be.equal('All netcores have been started');
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
 
                 done();
             });
@@ -438,16 +434,16 @@ describe('freebird - Functional Check', function () {
                 startStub2 = sinon.stub(fakeNc2, 'start', function (callback) {    
                     callback();
                 }),
-                maintainSpy = sinon.spy(fbMultiNc, 'maintain');
+                maintainSpy = sinon.spy(fb, 'maintain');
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
             fakeNc._state = FB_STATE.UNKNOW;
             fakeNc2._state = FB_STATE.NORMAL;
 
-            fbMultiNc.start(function (err) {
+            fb.start(function (err) {
                 expect(startStub).to.be.calledOnce;
                 expect(startStub2).to.be.callCount(0);
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(maintainSpy).to.be.calledOnce;
 
                 startStub.restore();
@@ -470,15 +466,15 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
             fakeNc._state = FB_STATE.UNKNOW;
             fakeNc2._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.start(function (err) {
+            fb.start(function (err) {
                 expect(startStub2).to.be.calledOnce;
                 expect(startStub).to.be.calledOnce;
                 expect(stopStub2).to.be.callCount(0);
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(err.message).to.be.equal('fakeNc1 netcore start failed with error: error');
 
                 startStub2.restore();
@@ -519,16 +515,16 @@ describe('freebird - Functional Check', function () {
         //             }
         //         });
 
-        //     fbMultiNc.stop(function (err) {
+        //     fb.stop(function (err) {
         //         done();
         //     });
         // });
 
         it('should be error if freebird already stopped', function (done) {
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.stop(function (err) {
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.UNKNOW);
+            fb.stop(function (err) {
+                expect(fb._getState()).to.be.equal(FB_STATE.UNKNOW);
                 expect(err.message).to.be.equal('Freebird can not stop now');
                 done();
             });
@@ -542,14 +538,14 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
             fakeNc._state = FB_STATE.NORMAL;
             fakeNc2._state = FB_STATE.NORMAL;
 
-            fbMultiNc.stop(function (err) {
+            fb.stop(function (err) {
                 expect(stopStub).to.be.calledOnce;
                 expect(stopStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(err.message).to.be.equal('fakeNc1 netcore stop failed with error: error');
 
                 stopStub.restore();
@@ -567,14 +563,14 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
             fakeNc._state = FB_STATE.UNKNOW;
             fakeNc2._state = FB_STATE.NORMAL;
 
-            fbMultiNc.stop(function (err) {
+            fb.stop(function (err) {
                 expect(stopStub).to.be.callCount(0);
                 expect(stopStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.UNKNOW);
+                expect(fb._getState()).to.be.equal(FB_STATE.UNKNOW);
 
                 stopStub.restore();
                 stopStub2.restore();
@@ -596,9 +592,15 @@ describe('freebird - Functional Check', function () {
         });
 
         it('should reset netcore with mode 0', function (done) {
-            var resetStub = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
+            var resetStub1 = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
                     if (mode === 0 && _.isFunction(callback)) { 
-                        resetStub.restore();
+                        resetStub1.restore();
+                        callback();
+                    }
+                }),
+                resetStub2 = sinon.stub(fakeNc2, 'reset', function (mode, callback) { 
+                    if (mode === 0 && _.isFunction(callback)) { 
+                        resetStub2.restore();
                         callback();
                     }
                 });
@@ -613,9 +615,15 @@ describe('freebird - Functional Check', function () {
         });
 
         it('should reset netcore with mode 1', function (done) {
-            var resetStub = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
-                    if (mode === 1 && _.isFunction(callback)) {     
-                        resetStub.restore();
+            var resetStub1 = sinon.stub(fakeNc, 'reset', function (mode, callback) { 
+                    if (mode === 1 && _.isFunction(callback)) { 
+                        resetStub1.restore();
+                        callback();
+                    }
+                }),
+                resetStub2 = sinon.stub(fakeNc2, 'reset', function (mode, callback) { 
+                    if (mode === 1 && _.isFunction(callback)) { 
+                        resetStub2.restore();
                         callback();
                     }
                 });
@@ -643,17 +651,17 @@ describe('freebird - Functional Check', function () {
         //             }
         //         });
 
-        //     fbMultiNc.reset(0, function (err) {
+        //     fb.reset(0, function (err) {
         //         done();
         //     });
         // });
 
         it('should be error if call soft reset when freebird is stopped', function (done) {
             // unknow
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.reset(0, function(err) {
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.UNKNOW);
+            fb.reset(0, function(err) {
+                expect(fb._getState()).to.be.equal(FB_STATE.UNKNOW);
                 expect(err.message).to.be.equal('You can only hard reset when freebird is stopped');
 
                 done();
@@ -675,15 +683,15 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.reset(1, function (err) {
+            fb.reset(1, function (err) {
                 expect(unloadByNcStub).to.be.calledOnce;
-                expect(unloadByNcStub).to.be.calledWith(fbMultiNc, fakeNc2.getName());
+                expect(unloadByNcStub).to.be.calledWith(fb, fakeNc2.getName());
                 expect(resetStub).to.be.calledOnce;
                 expect(resetStub2).to.be.calledOnce;
                 expect(stopStub).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.UNKNOW);
+                expect(fb._getState()).to.be.equal(FB_STATE.UNKNOW);
                 expect(err.message).to.be.equal('fakeNc1 netcore reset failed with error: error');
 
                 unloadByNcStub.restore();
@@ -706,17 +714,17 @@ describe('freebird - Functional Check', function () {
                 resetStub2 = sinon.stub(fakeNc2, 'reset', function (mode, callback) {   
                     callback();
                 }),
-                fbEmitSpy = sinon.spy(fbMultiNc, 'emit');
+                fbEmitSpy = sinon.spy(fb, 'emit');
 
-            fbMultiNc._state = FB_STATE.UNKNOW;
+            fb._state = FB_STATE.UNKNOW;
 
-            fbMultiNc.reset(1, function (err) {
+            fb.reset(1, function (err) {
                 expect(unloadByNcStub).to.be.calledTwice;
-                expect(unloadByNcStub).to.be.calledWith(fbMultiNc, fakeNc.getName());
-                expect(unloadByNcStub).to.be.calledWith(fbMultiNc, fakeNc2.getName());
+                expect(unloadByNcStub).to.be.calledWith(fb, fakeNc.getName());
+                expect(unloadByNcStub).to.be.calledWith(fb, fakeNc2.getName());
                 expect(resetStub).to.be.calledOnce;
                 expect(resetStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(fbEmitSpy).to.be.calledOnce;
                 expect(fbEmitSpy).to.be.calledWith(EVT_TOP.READY);
 
@@ -738,12 +746,12 @@ describe('freebird - Functional Check', function () {
                     callback();
                 });
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
 
-            fbMultiNc.reset(0, function (err) {
+            fb.reset(0, function (err) {
                 expect(resetStub).to.be.calledOnce;
                 expect(resetStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(err.message).to.be.equal('fakeNc1 netcore reset failed with error: error');
 
                 resetStub.restore();
@@ -761,14 +769,14 @@ describe('freebird - Functional Check', function () {
                 resetStub2 = sinon.stub(fakeNc2, 'reset', function (mode, callback) {   
                     callback();
                 }),
-                fbEmitSpy = sinon.spy(fbMultiNc, 'emit');
+                fbEmitSpy = sinon.spy(fb, 'emit');
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
 
-            fbMultiNc.reset(0, function (err) {
+            fb.reset(0, function (err) {
                 expect(resetStub).to.be.calledOnce;
                 expect(resetStub2).to.be.calledOnce;
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(fbEmitSpy).to.be.calledOnce;
 
                 resetStub.restore();
@@ -790,17 +798,17 @@ describe('freebird - Functional Check', function () {
                 resetStub2 = sinon.stub(fakeNc2, 'reset', function (mode, callback) {   
                     callback();
                 }),
-                fbEmitSpy = sinon.spy(fbMultiNc, 'emit');
+                fbEmitSpy = sinon.spy(fb, 'emit');
 
-            fbMultiNc._state = FB_STATE.NORMAL;
+            fb._state = FB_STATE.NORMAL;
 
-            fbMultiNc.reset(1, function (err) {
+            fb.reset(1, function (err) {
                 expect(resetStub).to.be.calledOnce;
                 expect(resetStub2).to.be.calledOnce;
                 expect(unloadByNcStub).to.be.calledTwice;
-                expect(unloadByNcStub).to.be.calledWith(fbMultiNc, fakeNc.getName());
-                expect(unloadByNcStub).to.be.calledWith(fbMultiNc, fakeNc2.getName());
-                expect(fbMultiNc._getState()).to.be.equal(FB_STATE.NORMAL);
+                expect(unloadByNcStub).to.be.calledWith(fb, fakeNc.getName());
+                expect(unloadByNcStub).to.be.calledWith(fb, fakeNc2.getName());
+                expect(fb._getState()).to.be.equal(FB_STATE.NORMAL);
                 expect(fbEmitSpy).to.be.calledOnce;
 
                 resetStub.restore();
@@ -823,22 +831,9 @@ describe('freebird - Functional Check', function () {
 
     describe('#permitJoin(duration, callback)', function () {
         it('should set netcore permitJoin', function (done) {
-            var permitJoinStub = sinon.stub(fakeNc, 'permitJoin', function (duration, callback) { 
+            var permitJoinStub1 = sinon.stub(fakeNc, 'permitJoin', function (duration, callback) { 
                     if (duration === 30 && _.isFunction(callback)) {     
-                        permitJoinStub.restore();
-                        callback();
-                    }
-                });
-
-            fb.permitJoin(30, function (err) {
-                done();
-            });
-        });        
-
-        it('should permitJoin multi netcore', function (done) {
-            var permitJoinStub = sinon.stub(fakeNc, 'permitJoin', function (duration, callback) { 
-                    if (duration === 30 && _.isFunction(callback)) {     
-                        permitJoinStub.restore();
+                        permitJoinStub1.restore();
                         callback();
                     }
                 }),
@@ -849,10 +844,10 @@ describe('freebird - Functional Check', function () {
                     }
                 });
 
-            fbMultiNc.permitJoin(30, function (err) {
+            fb.permitJoin(30, function (err) {
                 done();
             });
-        });
+        });        
     });
 
     describe('#remove(ncName, permAddr, callback)', function () {
@@ -965,7 +960,7 @@ describe('freebird - Functional Check', function () {
     });
 
     describe('#maintain(ncName, callback)', function () {
-        it('should maintain netcore', function (done) {
+        it('should maintain with ncName', function (done) {
             var maintainStub = sinon.stub(fakeNc, 'maintain', function (callback) { 
                     if (_.isFunction(callback)) {     
                         maintainStub.restore();
@@ -973,25 +968,12 @@ describe('freebird - Functional Check', function () {
                     }
                 });
 
-            fb.maintain(function (err) {
+            fb.maintain('fakeNc1', function (err) {
                 done();
             }); 
         });
 
-        it('should maintain multi netcore with ncName', function (done) {
-            var maintainStub = sinon.stub(fakeNc, 'maintain', function (callback) { 
-                    if (_.isFunction(callback)) {     
-                        maintainStub.restore();
-                        callback();
-                    }
-                });
-
-            fbMultiNc.maintain('fakeNc1', function (err) {
-                done();
-            }); 
-        });
-
-        it('should maintain multi netcore without ncName', function (done) {
+        it('should maintain without ncName', function (done) {
             var maintainStub = sinon.stub(fakeNc, 'maintain', function (callback) { 
                     if (_.isFunction(callback)) {     
                         maintainStub.restore();
@@ -1005,7 +987,7 @@ describe('freebird - Functional Check', function () {
                     }
                 });
 
-            fbMultiNc.maintain(function (err) {
+            fb.maintain(function (err) {
                 done();
             }); 
         });
@@ -1055,10 +1037,8 @@ describe('freebird - Functional Check', function () {
 
         after(function (done) {
             try {
-                fs.unlink(path.resolve(__dirname, './database/testDevices1.db'));
-                fs.unlink(path.resolve(__dirname, './database/testGadgets1.db'));
-                fs.unlink(path.resolve(__dirname, './database/testDevices2.db'));
-                fs.unlink(path.resolve(__dirname, './database/testGadgets2.db'));
+                fs.unlink(path.resolve(__dirname, './database/devices.db'));
+                fs.unlink(path.resolve(__dirname, './database/gadgets.db'));
             } catch (e) {
                 console.log(e);
             }

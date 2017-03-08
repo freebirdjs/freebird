@@ -21,12 +21,12 @@ var fakeNc = {
         maintain: function (cb) { cb(); }
     },
     fbWithNc = new Freebird([fakeNc], { dbPaths: {
-        device: path.resolve(__dirname, './database/testDevices0.db'), 
-        gadget: path.resolve(__dirname, './database/testGadgets0.db')
+        device: path.resolve(__dirname, './database/devices1.db'), 
+        gadget: path.resolve(__dirname, './database/gadgets1.db')
     }}),
     fbWithoutNc = new Freebird([], { dbPaths: {
-        device: path.resolve(__dirname, './database/testDevices2.db'), 
-        gadget: path.resolve(__dirname, './database/testGadgets2.db')
+        device: path.resolve(__dirname, './database/devices2.db'), 
+        gadget: path.resolve(__dirname, './database/gadgets2.db')
     }});
 
 describe('freebird - Constructor Check', function () {
@@ -540,8 +540,10 @@ describe('freebird - Signature Check', function () {
 
         after(function (done) {
             try {
-                fs.unlink(path.resolve(__dirname, './database/testDevices0.db'));
-                fs.unlink(path.resolve(__dirname, './database/testGadgets0.db'));
+                fs.unlink(path.resolve(__dirname, './database/devices1.db'));
+                fs.unlink(path.resolve(__dirname, './database/gadgets1.db'));
+                fs.unlink(path.resolve(__dirname, './database/devices2.db'));
+                fs.unlink(path.resolve(__dirname, './database/gadgets2.db'));
             } catch (e) {
                 console.log(e);
             }
