@@ -33,10 +33,7 @@ var rpcServer = fbRpc.createServer(httpServer),
 describe('Intergration test', function () {
     describe('#new Freebird()', function () {
         before(function () {
-            fbird = new Freebird([ ncMock1, ncMock2 ], { dbPaths: {
-                device: path.resolve(__dirname, './database/devices.db'), 
-                gadget: path.resolve(__dirname, './database/gadgets.db')
-            }});
+            fbird = new Freebird([ ncMock1, ncMock2 ]);
         });
 
         it('should has all correct members after new', function () {
@@ -374,6 +371,7 @@ describe('Intergration test', function () {
                     checkCount += 1;
 
                 if (checkCount === 3) {
+                    rpcClient.removeListener('ind', topLsn);
                     fbird.removeListener('error', errLsn);
                     fbird.removeListener(BTM_EVTS.NcError, ncErrLsn);
                     ncMock1.enable();
@@ -635,7 +633,7 @@ describe('Intergration test', function () {
                     msg.data.netcore === ncMock1.getName() &&
                     msg.data.permAddr === banDevAddr) {
                     checkCount += 1;
-                    fbird.removeListener('ind', topLsn);
+                    rpcClient.removeListener('ind', topLsn);
 
                     if (checkCount === 3)
                         done();
@@ -829,7 +827,7 @@ describe('Intergration test', function () {
                     checkCount += 1;
 
                     if (checkCount === 6) {
-                        fbird.removeListener('ind', topLsn);
+                        rpcClient.removeListener('ind', topLsn);
                         done();
                     }
                 }
@@ -916,7 +914,7 @@ describe('Intergration test', function () {
                     msg.type === 'attrsReport' &&
                     msg.id === unbanGad.get('id')) {
                     checkCount += 1;
-                    fbird.removeListener('ind', topLsn);
+                    rpcClient.removeListener('ind', topLsn);
 
                     if (checkCount === 4) {
                         fbird.removeListener(TOP_EVTS.GAD_REPORTING, lsn2);
@@ -2616,8 +2614,8 @@ describe('Intergration test', function () {
 
         after(function (done) {
             try {
-                fs.unlink(path.resolve(__dirname, './database/devices.db'));
-                fs.unlink(path.resolve(__dirname, './database/gadgets.db'));
+                fs.unlink(path.resolve(__dirname, '../database/devices.db'));
+                fs.unlink(path.resolve(__dirname, '../database/gadgets.db'));
             } catch (e) {
                 console.log(e);
             }
