@@ -1,6 +1,6 @@
 {
   "name": "freebird",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "app framework",
   "main": "index.js",
   "scripts": {
