@@ -230,6 +230,8 @@ describe('freebird - Functional Check', function () {
         it('should register gadget with recovering false', function (done) {
             fakeGad._recovering = false;
             fb.register('gadget', fakeGad, function (err, id) {
+                console.log(id);
+                console.log(fakeGad);
                 if (id === fakeGad._id && fakeDev._gads.length !== 0) {
                     fb.unregister('gadget', fakeGad, function (err, id) { 
                         done();

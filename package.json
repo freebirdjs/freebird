@@ -1,6 +1,6 @@
 {
   "name": "freebird",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "app framework",
   "main": "index.js",
   "scripts": {
@@ -21,17 +21,13 @@
     "busyman": "^0.3.0",
     "freebird-base": "^0.4.6",
     "freebird-constants": "^0.2.4",
-    "freebird-netcore-mockup": "^0.2.5",
-    "freebird-rpc": "^0.3.0",
     "objectbox": "^0.3.0",
-    "proving": "^0.1.0",
-    "sinon": "^1.17.7",
-    "sinon-chai": "^2.8.0"
+    "proving": "^0.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "freebird-netcore-mockup": "^0.2.3",
-    "freebird-rpc": "^0.2.0",
+    "freebird-netcore-mockup": "^0.2.5",
+    "freebird-rpc": "^0.3.0",
     "mocha": "^2.5.3",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0"
