@@ -1,4 +1,4 @@
-<img src="https://lh6.googleusercontent.com/GyhaSDdTMgS_jZiuF3q6MHazgAopUhqfF1eipf8KN5YFmOiFkJelAloSmgK4n215sS5x9vmmgOv4_w=w1679-h871" align="right" height="96" width="96" />
+<img src="https://raw.githubusercontent.com/freebirdjs/documents/master/media/freebird_logo.png" align="right" height="96" width="96" />
   
 # freebird
 
